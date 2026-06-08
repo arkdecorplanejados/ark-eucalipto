@@ -1,3 +1,4 @@
+// @ts-ignore
 import './globals.css'; // Carrega os estilos globais do Tailwind
 
 export const metadata = {
