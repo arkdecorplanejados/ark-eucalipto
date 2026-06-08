@@ -1,0 +1,37 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.ts",
+    "limpar-site": "tsx -e \"import admin from 'firebase-admin'; import { readFileSync } from 'fs'; const keys = JSON.parse(readFileSync('./firebase-keys.json', 'utf8')); admin.initializeApp({ credential: admin.credential.cert(keys) }); const db = admin.firestore(); await db.collection('configuracoes').doc('site').delete(); console.log('🗑️ Documento \\\"site\\\" deletado com SUCESSO do Firebase!'); process.exit(0);\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.16.1",
+    "cloudinary": "^2.10.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "firebase-admin": "^13.10.0",
+    "helmet": "^8.2.0",
+    "multer": "^2.1.1",
+    "puppeteer": "^25.0.4"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^25.9.1",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}
