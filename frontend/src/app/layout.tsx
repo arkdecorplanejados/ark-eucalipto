@@ -1,4 +1,4 @@
-import '@/app/globals.css'; // Carrega os estilos globais do Tailwind
+import './globals.css'; // Carrega os estilos globais do Tailwind
 
 export const metadata = {
   title: 'Ark Eucalipto | Madeiras In Natura e Eucalipto Tratado em Vitória da Conquista',
