@@ -5,6 +5,9 @@ import { useState } from 'react';
 export default function Geral({ dados, setDados }: { dados: any; setDados: any }) {
   const [subindo, setSubindo] = useState(false);
 
+  // 🟢 URL DINÂMICA: Detecta automaticamente se deve usar o servidor da Render ou o localhost
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, campo: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -13,7 +16,8 @@ export default function Geral({ dados, setDados }: { dados: any; setDados: any }
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:3001/api/site/upload', { method: 'POST', body: formData });
+      // 🟢 ROTA ATUALIZADA: Agora aponta para a nuvem em produção
+      const res = await fetch(`${API_URL}/api/site/upload`, { method: 'POST', body: formData });
       const data = await res.json();
       if (res.ok && data.url) {
         if (campo === 'logo') setDados({ ...dados, logoUrl: data.url });

@@ -8,9 +8,12 @@ export default function ProdutosPage() {
   const [salvando, setSalvando] = useState(false);
   const [novo, setNovo] = useState({ nome: '', categoria: 'innatura', preco: 'Sob Consulta', visivel: true });
 
+  // 🟢 URL DINÂMICA: Lê o servidor de produção (Render) ou o localhost
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
   // 📡 Carrega as configurações e produtos do pátio central
   useEffect(() => {
-    fetch('http://localhost:3001/api/site/config')
+    fetch(`${API_URL}/api/site/config`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) setConfigGlobal(data);
@@ -20,13 +23,13 @@ export default function ProdutosPage() {
         console.error("❌ Erro ao buscar produtos:", err);
         setCarregando(false);
       });
-  }, []);
+  }, [API_URL]);
 
   // 💾 Salva o estado atualizado direto no banco de dados
   const persistirNoBanco = async (dadosAtualizados: any) => {
     setSalvando(true);
     try {
-      const res = await fetch('http://localhost:3001/api/site/config/atualizar', {
+      const res = await fetch(`${API_URL}/api/site/config/atualizar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dadosAtualizados)

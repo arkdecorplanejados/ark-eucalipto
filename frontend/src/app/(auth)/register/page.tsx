@@ -19,7 +19,10 @@ export default function RegisterPage() {
     setCarregando(true);
 
     try {
-      const resposta = await fetch('http://localhost:3001/api/auth/register', {
+      // 🟢 CORREÇÃO: Puxa o servidor da Render em produção ou usa o localhost em desenvolvimento
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+      const resposta = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,7 +34,7 @@ export default function RegisterPage() {
         }),
       });
 
-      // 🚀 Captura o texto bruto primeiro para evitar quebras se o servidor responder HTML
+      // Captura o texto bruto primeiro para evitar quebras se o servidor responder HTML
       const textoBruto = await resposta.text();
       let dados: any = {};
 
@@ -68,7 +71,7 @@ export default function RegisterPage() {
         
         <div className="text-center mb-8">
           <h2 className="text-2xl font-serif font-bold text-zinc-900 tracking-tight">
-            Criar Administrator
+            Criar Administrador
           </h2>
           <p className="text-sm text-zinc-500 mt-2">
             Cadastre o usuário mestre do sistema Ark
