@@ -11,25 +11,36 @@ import { join } from 'path';
 dotenv.config();
 
 // ========================================================
-// 🔥 INICIALIZAÇÃO DEFINITIVA E IMEDIATA DO FIREBASE ADMIN
+// 🔥 INICIALIZAÇÃO ADAPTADA: VARIÁVEIS (RENDER) OU ARQUIVO LOCAL
 // ========================================================
 if (!admin.apps.length) {
   try {
-    const credentialsPath = process.env.FIREBASE_CREDENTIALS_PATH || './firebase-keys.json';
-    
-    const serviceAccount = JSON.parse(
-      readFileSync(join(process.cwd(), credentialsPath), 'utf8')
-    );
+    // Se a chave privada estiver nas variáveis de ambiente (Produção - Render)
+    if (process.env.FIREBASE_PRIVATE_KEY) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        }),
+      });
+      console.log(`🔥 Firebase Admin autenticado com SUCESSO via Variáveis de Ambiente!`);
+    } 
+    // Caso contrário, busca o arquivo físico (Desenvolvimento - Local)
+    else {
+      const credentialsPath = process.env.FIREBASE_CREDENTIALS_PATH || './firebase-keys.json';
+      const serviceAccount = JSON.parse(
+        readFileSync(join(process.cwd(), credentialsPath), 'utf8')
+      );
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      projectId: serviceAccount.project_id
-    });
-    
-    console.log(`🔥 Firebase Admin autenticado com SUCESSO! Projeto: ${serviceAccount.project_id}`);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: serviceAccount.project_id
+      });
+      console.log(`🔥 Firebase Admin autenticado via arquivo local! Projeto: ${serviceAccount.project_id}`);
+    }
   } catch (error: any) {
     console.error('❌ Erro crítico ao inicializar o Firebase Admin:', error.message);
-    console.log('⚠️ Certifique-se de que o arquivo "firebase-keys.json" está na raiz do projeto.');
     process.exit(1);
   }
 }
@@ -38,7 +49,7 @@ if (!admin.apps.length) {
 // 2. SÓ IMPORTA O RESTANTE DO SISTEMA DEPOIS QUE O FIREBASE JÁ ESTÁ RODANDO
 import './utils/seedLeads.js';
 import leadRoutes from './routes/leads.js';
-import siteRoutes from './routes/site.js'; // 🚀 IMPORTADO: Seguindo estritamente o padrão .js do ES Modules
+import siteRoutes from './routes/site.js'; 
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -47,29 +58,25 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet()); 
 app.use(compression()); 
 
-// 🚀 PADRONIZADO: CORS aberto com asterisco para desenvolvimento local sem travas
+// CORS Totalmente aberto e amigável para a Vercel e requisições externas
 app.use(cors({
   origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ========================================================
-// 🗜️ AJUSTE DE LIMITES: Middleware de JSON com expansão de carga para 10MB
-// ========================================================
 app.use(express.json({ limit: '10mb' })); 
 app.use(express.urlencoded({ limit: '10mb', extended: true })); 
-// ========================================================
 
 // Vincula as rotas de gerenciamento
 app.use('/api/leads', leadRoutes);
-app.use('/api/site', siteRoutes); // 🚀 REGISTRADO: Agora o Express sabe que o endpoint /api/site existe!
+app.use('/api/site', siteRoutes); 
 
 // ========================================================
 // 🔐 ENDPOINTS DE AUTENTICAÇÃO INTERNOS
 // ========================================================
 
-// 🟢 CADASTRO: http://localhost:3001/api/auth/register
+// 🟢 CADASTRO: /api/auth/register
 app.post('/api/auth/register', async (req: Request, res: Response) => {
   const { nome, email, senha } = req.body;
 
@@ -84,19 +91,19 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
       displayName: nome,
     });
 
-    console.log(`✅ Administrador cadastrado com sucesso no Firebase: ${email}`);
+    console.log(`✅ Administrador cadastrado com sucesso: ${email}`);
 
     return res.status(201).json({
       message: 'Administrador criado com sucesso!',
       uid: usuarioFirebase.uid,
     });
   } catch (error: any) {
-    console.error('❌ Erro ao criar usuário no Firebase:', error.message);
+    console.error('❌ Erro ao criar usuário:', error.message);
     return res.status(400).json({ message: error.message || 'Erro ao registrar usuário.' });
   }
 });
 
-// 🔵 LOGIN: http://localhost:3001/api/auth/login
+// 🔵 LOGIN: /api/auth/login
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   const { email, senha } = req.body;
 
@@ -141,5 +148,4 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Ark Eucalipto Backend rodando na porta ${PORT}`);
-  console.log(`🔗 Endpoint de cadastro pronto em: http://localhost:${PORT}/api/auth/register`);
 });
