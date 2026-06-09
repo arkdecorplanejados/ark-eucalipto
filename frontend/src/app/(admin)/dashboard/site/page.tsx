@@ -6,9 +6,12 @@ import Slides from './components/Slides';
 import Produtos from './components/Produtos';
 import SecaoFinanceiro from './components/Financeiro';
 import NotasFiscais from './components/NotasFiscais';
-import Calendario from './components/Calendario'; // 👈 1. IMPORTAÇÃO DO NOVO MÓDULO
-import Diferenciais from './components/Diferenciais'; // 👈 Adicione perto das outras importações
-import FAQAdmin from './components/FAQ'; // 👈 Adicione perto dos seus outros imports
+import Calendario from './components/Calendario'; 
+import Diferenciais from './components/Diferenciais'; 
+import FAQAdmin from './components/FAQ'; 
+
+// 🟢 URL DINÂMICA NO TOPO: Detecta automaticamente se deve usar a Render ou o localhost
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function CMSPage() {
   const [abaAtiva, setAbaAtiva] = useState<string>('financeiro');
@@ -24,8 +27,9 @@ export default function CMSPage() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
+  // 📡 Sincroniza dados com o pátio central na nuvem
   useEffect(() => {
-    fetch('http://localhost:3001/api/site/config')
+    fetch(`${API_URL}/api/site/config`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
@@ -46,10 +50,11 @@ export default function CMSPage() {
       });
   }, []);
 
+  // 💾 Salva todas as abas de uma vez no Firebase remoto
   const handleSalvar = async () => {
     setSalvando(true);
     try {
-      const res = await fetch('http://localhost:3001/api/site/config/atualizar', {
+      const res = await fetch(`${API_URL}/api/site/config/atualizar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados)
@@ -71,10 +76,9 @@ export default function CMSPage() {
     );
   }
 
-  // 👈 2. ADICIONADO 'calendario' NA LISTA DE ABAS SUPERIORES
   const abas = [
     { id: 'financeiro', label: '📊 Financeiro SaaS' },
-    { id: 'notas', label: '📑 Notas Fiscais' }, // 👈 Adicionado aqui!
+    { id: 'notas', label: '📑 Notas Fiscais' }, 
     { id: 'calendario', label: '🗓️ Agenda & Atividades' },
     { id: 'produtos', label: 'Vitrine do Pátio' },
     { id: 'slides', label: 'Slides/Banners (Hero)' },
@@ -117,17 +121,16 @@ export default function CMSPage() {
       </div>
 
       {/* Container Dinâmico Isolado */}
-      {/* Procure pelo container dinâmico isolado e mude para ficar assim: */}
-<div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 shadow-sm">
-  {abaAtiva === 'financeiro' && <SecaoFinanceiro />}
-  {abaAtiva === 'notas' && <NotasFiscais />}
-  {abaAtiva === 'calendario' && <Calendario />}
-  {abaAtiva === 'geral' && <Geral dados={dados} setDados={setDados} />}
-  {abaAtiva === 'slides' && <Slides dados={dados} setDados={setDados} />}
-  {abaAtiva === 'produtos' && <Produtos dados={dados} setDados={setDados} />}
-{abaAtiva === 'diferenciais' && <Diferenciais dados={dados} setDados={setDados} />}
-  {abaAtiva === 'faq' && <FAQAdmin dados={dados} setDados={setDados} />}
-</div>
+      <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 shadow-sm">
+        {abaAtiva === 'financeiro' && <SecaoFinanceiro />}
+        {abaAtiva === 'notas' && <NotasFiscais />}
+        {abaAtiva === 'calendario' && <Calendario />}
+        {abaAtiva === 'geral' && <Geral dados={dados} setDados={setDados} />}
+        {abaAtiva === 'slides' && <Slides dados={dados} setDados={setDados} />}
+        {abaAtiva === 'produtos' && <Produtos dados={dados} setDados={setDados} />}
+        {abaAtiva === 'diferenciais' && <Diferenciais dados={dados} setDados={setDados} />}
+        {abaAtiva === 'faq' && <FAQAdmin dados={dados} setDados={setDados} />}
+      </div>
     </div>
   );
 }
