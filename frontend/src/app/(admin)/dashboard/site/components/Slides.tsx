@@ -5,6 +5,9 @@ import { useState } from 'react';
 export default function Slides({ dados, setDados }: { dados: any; setDados: any }) {
   const [subindo, setSubindo] = useState(false);
 
+  // 🟢 URL DINÂMICA: Detecta se o app está rodando no servidor da Render ou localmente
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
   const handleUploadSlide = async (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -13,7 +16,8 @@ export default function Slides({ dados, setDados }: { dados: any; setDados: any 
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:3001/api/site/upload', { method: 'POST', body: formData });
+      // 🟢 ROTA ATUALIZADA: Aponta para a API correta na nuvem em produção
+      const res = await fetch(`${API_URL}/api/site/upload`, { method: 'POST', body: formData });
       const data = await res.json();
       if (res.ok && data.url) {
         const novosSlides = [...(dados.slides || [])];
