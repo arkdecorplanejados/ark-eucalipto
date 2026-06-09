@@ -42,7 +42,7 @@ export default function Slides({ dados, setDados }: { dados: any; setDados: any 
             ...dados, 
             slides: [...(dados.slides || []), { id: `slide_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`, titulo: 'Novo Banner', subtitulo: '', imagem: '' }]
           })} 
-          className="text-emerald-700 text-xs font-black uppercase tracking-wider"
+          className="text-emerald-700 hover:text-emerald-800 text-xs font-black uppercase tracking-wider transition-colors"
         >
           + Adicionar Banner
         </button>
@@ -56,21 +56,65 @@ export default function Slides({ dados, setDados }: { dados: any; setDados: any 
               <button 
                 type="button" 
                 onClick={() => setDados({ ...dados, slides: dados.slides.filter((_: any, i: number) => i !== idx) })}
-                className="text-rose-500 text-xs font-bold"
+                className="text-rose-500 hover:text-rose-600 text-xs font-bold transition-colors"
               >
-                Remover
+                Remover Banner
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input className="p-2.5 border bg-white rounded-lg text-xs" placeholder="Título" value={slide.titulo || ''} onChange={e => { const ns = [...dados.slides]; ns[idx].titulo = e.target.value; setDados({...dados, slides: ns}); }} />
-              <input className="p-2.5 border bg-white rounded-lg text-xs" placeholder="Subtítulo" value={slide.subtitulo || ''} onChange={e => { const ns = [...dados.slides]; ns[idx].subtitulo = e.target.value; setDados({...dados, slides: ns}); }} />
-            </div>
-            <div className="flex items-center gap-2 bg-white p-1 rounded-lg border">
-              <input type="text" className="flex-1 p-1.5 bg-zinc-50 text-zinc-500 rounded text-[11px]" readOnly value={slide.imagem || ''} placeholder="Sem mídia vinculada" />
-              <label className="bg-zinc-900 text-white text-[11px] px-3 py-1.5 rounded-md font-bold cursor-pointer whitespace-nowrap">
-                {subindo ? '...' : 'Upload Imagem'}
-                <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadSlide(e, idx)} />
-              </label>
+
+            {/* 🟢 AREA INTERATIVA: Imagem + Inputs integrados em Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+              
+              {/* Card visual da Foto (Ocupa 3 colunas) */}
+              <div className="md:col-span-3 h-24 bg-white rounded-xl border border-zinc-200 shadow-sm relative overflow-hidden flex items-center justify-center group">
+                {slide.imagem ? (
+                  <>
+                    <img src={slide.imagem} alt="Slide Preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-zinc-950/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-1 items-center justify-center">
+                      <label className="text-[10px] bg-white hover:bg-zinc-100 text-zinc-900 font-bold px-2 py-1 rounded shadow-md cursor-pointer transition-colors">
+                        Alterar
+                        <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadSlide(e, idx)} />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const ns = [...dados.slides];
+                          ns[idx].imagem = '';
+                          setDados({ ...dados, slides: ns });
+                        }}
+                        className="text-[10px] bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-1 rounded shadow-md transition-colors"
+                      >
+                        Limpar
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer bg-zinc-100/50 hover:bg-zinc-200/50 transition-colors text-center p-2">
+                    <span className="text-xl">📷</span>
+                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-wider mt-1">
+                      {subindo ? 'Subindo...' : 'Upload Imagem'}
+                    </span>
+                    <input type="file" accept="image/*" className="hidden" onChange={e => handleUploadSlide(e, idx)} />
+                  </label>
+                )}
+              </div>
+
+              {/* Inputs de Conteúdo (Ocupam as 9 colunas restantes) */}
+              <div className="md:col-span-9 space-y-2">
+                <input 
+                  className="w-full p-2.5 border bg-white rounded-lg text-xs font-medium text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500" 
+                  placeholder="Título Principal do Banner" 
+                  value={slide.titulo || ''} 
+                  onChange={e => { const ns = [...dados.slides]; ns[idx].titulo = e.target.value; setDados({...dados, slides: ns}); }} 
+                />
+                <input 
+                  className="w-full p-2.5 border bg-white rounded-lg text-xs font-medium text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500" 
+                  placeholder="Subtítulo ou Mensagem Curta de Apoio" 
+                  value={slide.subtitulo || ''} 
+                  onChange={e => { const ns = [...dados.slides]; ns[idx].subtitulo = e.target.value; setDados({...dados, slides: ns}); }} 
+                />
+              </div>
+
             </div>
           </div>
         ))}
