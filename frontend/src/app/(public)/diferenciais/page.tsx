@@ -8,6 +8,7 @@ interface ParallaxConfig {
   titulo: string;
   subtitulo: string;
   imagemUrl: string;
+  whatsappCTA?: string; // 🟢 ADICIONADO: Propriedade mapeada do banco
 }
 
 export default function DiferenciaisPage() {
@@ -15,7 +16,8 @@ export default function DiferenciaisPage() {
   const [configParallax, setConfigParallax] = useState<ParallaxConfig>({
     titulo: "NOSSOS DIFERENCIAIS",
     subtitulo: "A robustez e a tecnologia por trás da nossa madeira tratada",
-    imagemUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1600&auto=format&fit=crop&q=80"
+    imagemUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1600&auto=format&fit=crop&q=80",
+    whatsappCTA: "" // Começa vazio para herdar o padrão
   });
 
   // 🔄 CONEXÃO EM TEMPO REAL: Puxa o que você editou lá no painel admin
@@ -24,22 +26,36 @@ export default function DiferenciaisPage() {
     
     if (dadosGlobais) {
       const parsed = JSON.parse(dadosGlobais);
-      // Acessa exatamente a propriedade que o seu componente admin alimenta
       const logisticaCms = parsed.parallax?.logistica;
 
       if (logisticaCms) {
         setConfigParallax({
           titulo: logisticaCms.titulo?.toUpperCase() || "NOSSOS DIFERENCIAIS",
           subtitulo: logisticaCms.subtitulo || "A robustez e a tecnologia por trás da nossa madeira tratada",
-          imagemUrl: logisticaCms.imagemUrl || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1600&auto=format&fit=crop&q=80"
+          imagemUrl: logisticaCms.imagemUrl || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1600&auto=format&fit=crop&q=80",
+          whatsappCTA: logisticaCms.whatsappCTA || "" // 🟢 CAPTURA O CAMPO DINÂMICO DO ADMIN
         });
       }
     }
   }, []);
   
+  // 📡 DIRECIONAMENTO INTELIGENTE DO BOTÃO DE COBRANÇA/ORÇAMENTO
   const handleSolicitarOrcamento = () => {
     const mensagem = encodeURIComponent("Olá! Visitei a página de diferenciais da Ark Eucalipto e gostaria de alinhar um projeto com madeira tratada.");
-    window.open(`https://wa.me/5577999999999?text=${mensagem}`, '_blank');
+    const ctaSalvo = configParallax.whatsappCTA?.trim();
+
+    // Se não tiver nada salvo, usa o número padrão de contingência
+    if (!ctaSalvo) {
+      window.open(`https://wa.me/5577992365475?text=${mensagem}`, '_blank');
+      return;
+    }
+
+    // Se for um link completo (começa com http), usa direto. Se for só o número, monta a URL nativa
+    const urlFinal = ctaSalvo.startsWith('http')
+      ? `${ctaSalvo}${ctaSalvo.includes('?') ? '&' : '?'}text=${mensagem}`
+      : `https://wa.me/${ctaSalvo.replace(/\D/g, '')}?text=${mensagem}`;
+
+    window.open(urlFinal, '_blank');
   };
 
   const diferenciais = [
@@ -117,7 +133,7 @@ export default function DiferenciaisPage() {
           ))}
         </div>
 
-        {/* CALL TO ACTION */}
+        {/* 🟢 CALL TO ACTION INTEGRADO AO NOVO LINK DINÂMICO */}
         <div className="mt-12 bg-zinc-900 text-white rounded-2xl p-6 md:p-8 border border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md">
           <div className="space-y-1 text-center md:text-left">
             <h4 className="text-lg font-serif font-black text-emerald-400">Pronto para construir com segurança?</h4>

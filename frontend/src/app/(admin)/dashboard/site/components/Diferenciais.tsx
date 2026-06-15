@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Layout, Check, Upload, Loader2, Eye, Save } from 'lucide-react';
+import { Layout, Check, Upload, Loader2, Eye, Save, MessageSquare } from 'lucide-react';
 
 interface ParallaxConfig {
   titulo: string;
   subtitulo: string;
   imagemUrl: string;
+  whatsappCTA?: string; // 🟢 ADICIONADO: Nova propriedade opcional para o link do botão
 }
 
 interface ComponenteProps {
@@ -26,7 +27,8 @@ export default function GerenciarDiferenciais({ dados, setDados }: ComponentePro
   // 📝 REFERÊNCIA DO INPUT DE ARQUIVO OCULTO
   const arquivoInputRef = useRef<HTMLInputElement>(null);
 
-  const configAtual = dados?.parallax?.logistica || { titulo: '', subtitulo: '', imagemUrl: '' };
+  // Garante os valores padrão para evitar quebras se o campo não existir no banco ainda
+  const configAtual = dados?.parallax?.logistica || { titulo: '', subtitulo: '', imagemUrl: '', whatsappCTA: '' };
 
   const handleMudarCampo = (campo: keyof ParallaxConfig, valor: string) => {
     setDados((prev: any) => ({
@@ -86,7 +88,7 @@ export default function GerenciarDiferenciais({ dados, setDados }: ComponentePro
     leitor.readAsDataURL(arquivo);
   };
 
-  // 💾 SALVAMENTO DIRETOR E IMEDIATO NO LOCALSTORAGE DO SITE
+  // 💾 SALVAMENTO DIRETO E IMEDIATO NO LOCALSTORAGE E MEMÓRIA
   const handleSalvarDireto = () => {
     setSalvandoLocal(true);
     
@@ -103,7 +105,7 @@ export default function GerenciarDiferenciais({ dados, setDados }: ComponentePro
       };
 
       localStorage.setItem('ark_eucalipto_config', JSON.stringify(dadosAtualizados));
-      alert('Configurações do Parallax salvas com sucesso! A página pública já está atualizada.');
+      alert('Configurações da página de Diferenciais salvas com sucesso! Lembre-se de clicar em "Publicar Mudanças" no topo para enviar à nuvem.');
     } catch (error) {
       alert('Erro ao salvar no banco local do navegador. Verifique o arquivo.');
     } finally {
@@ -112,11 +114,11 @@ export default function GerenciarDiferenciais({ dados, setDados }: ComponentePro
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn text-zinc-800">
+    <div className="space-y-8 animate-fadeIn text-zinc-800">
       
-      {/* 🛠️ FORMULÁRIO DE CONFIGURAÇÃO */}
-      <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-5 space-y-4">
-        <h4 className="text-xs font-black uppercase text-zinc-700 tracking-wide flex items-center gap-1.5">
+      {/* 🛠️ FORMULÁRIO DE CONFIGURAÇÃO DO TOPO */}
+      <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 space-y-4 shadow-sm">
+        <h4 className="text-xs font-black uppercase text-zinc-700 tracking-wide flex items-center gap-1.5 border-b border-zinc-200 pb-3">
           <Layout className="w-4 h-4 text-emerald-700" /> Configurar Topo Parallax (Diferenciais)
         </h4>
 
@@ -129,7 +131,7 @@ export default function GerenciarDiferenciais({ dados, setDados }: ComponentePro
               placeholder="Ex: NOSSOS DIFERENCIAIS" 
               value={configAtual.titulo} 
               onChange={e => handleMudarCampo('titulo', e.target.value)} 
-              className="w-full p-2.5 bg-white border rounded-xl text-xs font-bold" 
+              className="w-full p-2.5 bg-white border border-zinc-200 rounded-xl text-xs font-bold focus:outline-none focus:border-zinc-950 transition-all" 
             />
           </div>
 
@@ -140,16 +142,15 @@ export default function GerenciarDiferenciais({ dados, setDados }: ComponentePro
               placeholder="Ex: A robustez e a tecnologia por trás da nossa madeira tratada" 
               value={configAtual.subtitulo} 
               onChange={e => handleMudarCampo('subtitulo', e.target.value)} 
-              className="w-full p-2.5 bg-white border rounded-xl text-xs font-medium" 
+              className="w-full p-2.5 bg-white border border-zinc-200 rounded-xl text-xs font-medium focus:outline-none focus:border-zinc-950 transition-all" 
             />
           </div>
 
-          {/* ☁️ COMPONENTE DE UPLOAD LOCAL RECUPERADO COM SUCESSO */}
+          {/* ☁️ COMPONENTE DE UPLOAD LOCAL */}
           <div className="md:col-span-12 space-y-1">
             <label className="text-[9px] font-black uppercase text-zinc-400">Imagem de Fundo do Parallax</label>
             <div className="flex flex-col sm:flex-row gap-2">
               
-              {/* INPUT INTEGRADO INVISÍVEL */}
               <input 
                 type="file"
                 ref={arquivoInputRef}
@@ -158,7 +159,6 @@ export default function GerenciarDiferenciais({ dados, setDados }: ComponentePro
                 className="hidden" 
               />
 
-              {/* Botão de disparo visual da janela do sistema */}
               <button
                 type="button"
                 disabled={carregandoImagem}
@@ -199,16 +199,49 @@ export default function GerenciarDiferenciais({ dados, setDados }: ComponentePro
           </div>
         </div>
 
-        {/* 💾 BOTÃO INTERNO DE SALVAMENTO */}
-        <div className="flex justify-end pt-2 border-t border-zinc-200/60">
+        {/* 💾 BOTÃO INTERNO DE SALVAMENTO DO TOPO */}
+        <div className="flex justify-end pt-3 border-t border-zinc-200">
           <button
             type="button"
             disabled={salvandoLocal || carregandoImagem}
             onClick={handleSalvarDireto}
-            className="w-full sm:w-auto bg-zinc-900 text-white hover:bg-emerald-700 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+            className="w-full sm:w-auto bg-zinc-950 text-white hover:bg-zinc-800 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
           >
             <Save className="w-4 h-4" /> 
             {salvandoLocal ? 'Gravando...' : 'Salvar Configurações do Topo'}
+          </button>
+        </div>
+      </div>
+
+      {/* 🟢 NOVA SEÇÃO: CONFIGURAR BANNER DE AÇÃO (CTA) */}
+      <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 space-y-4 shadow-sm">
+        <h4 className="text-xs font-black uppercase text-zinc-700 tracking-wide flex items-center gap-1.5 border-b border-zinc-200 pb-3">
+          <MessageSquare className="w-4 h-4 text-emerald-700" /> Configurar Banner de Ação (CTA)
+        </h4>
+
+        <div className="space-y-1.5 group">
+          <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest group-focus-within:text-zinc-950 transition-colors">
+            Link Completo ou Número do WhatsApp para o Botão "Alinhar Carga"
+          </label>
+          <input
+            type="text"
+            placeholder="Ex: 5577982365475 ou link completo da API do WhatsApp"
+            value={configAtual.whatsappCTA || ''}
+            onChange={e => handleMudarCampo('whatsappCTA', e.target.value)}
+            className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-xs text-zinc-900 placeholder-zinc-300 transition-all focus:outline-none focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/5 font-medium"
+          />
+        </div>
+
+        {/* 💾 BOTÃO INTERNO DE SALVAMENTO DO CTA */}
+        <div className="flex justify-end pt-3 border-t border-zinc-200">
+          <button
+            type="button"
+            disabled={salvandoLocal}
+            onClick={handleSalvarDireto}
+            className="w-full sm:w-auto bg-zinc-950 text-white hover:bg-zinc-800 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+          >
+            <Save className="w-4 h-4" /> 
+            {salvandoLocal ? 'Gravando...' : 'Salvar Link do Botão'}
           </button>
         </div>
       </div>
