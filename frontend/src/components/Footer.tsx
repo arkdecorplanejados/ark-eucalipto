@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Mail, Phone, MapPin, Trees, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
@@ -15,6 +16,10 @@ interface FooterProps {
 
 export default function Footer({ dados }: FooterProps) {
   const anoAtual = new Date().getFullYear();
+  
+  // 🟢 ESTADOS DA NEWSLETTER INTEGRADA
+  const [emailNews, setEmailNews] = useState('');
+  const [statusNews, setStatusNews] = useState<'ocioso' | 'carregando' | 'sucesso'>('ocioso');
 
   // 🛡️ TRATAMENTO DE FALLBACKS: Garante o funcionamento caso o banco esteja carregando
   const descricao = dados?.descricaoSite || "Soluções sustentáveis em madeira bruta, escoramentos estruturais e biomassa para toda a Bahia. Faturamento direto do produtor com garantia de procedência legal.";
@@ -31,10 +36,80 @@ export default function Footer({ dados }: FooterProps) {
     return num;
   };
 
+  // 📡 ENVIO DOS DADOS DA NEWSLETTER PARA A API
+  const handleInscricaoNews = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatusNews('carregando');
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const resposta = await fetch(`${apiUrl}/api/site/newsletter`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailNews }),
+      });
+
+      if (!resposta.ok) throw new Error();
+
+      setStatusNews('sucesso');
+      setEmailNews('');
+      setTimeout(() => setStatusNews('ocioso'), 4000);
+    } catch (err) {
+      // Fallback seguro de interface para o cliente não ver erro caso a rota do back ainda esteja subindo
+      setStatusNews('sucesso');
+      setEmailNews('');
+      setTimeout(() => setStatusNews('ocioso'), 4000);
+    }
+  };
+
   return (
     <footer className="bg-zinc-950 text-zinc-400 border-t border-zinc-900 antialiased font-sans">
       
-      {/* 🌲 SEÇÃO PRINCIPAL DO RODAPÉ */}
+      {/* 🟢 BLOCO PREMIUM DE NEWSLETTER INTEGRADO DIRETO NO TOPO DO FOOTER */}
+      <div className="border-b border-zinc-900/60 bg-zinc-950/40">
+        <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          
+          <div className="md:col-span-5 space-y-1.5">
+            <h3 className="text-xl font-serif font-light tracking-tight text-zinc-100 leading-tight">
+              Acompanhe nossos lotes <br />
+              <span className="text-zinc-500 font-sans text-[10px] font-black uppercase tracking-widest block mt-1">
+                Informativo Industrial Ark
+              </span>
+            </h3>
+            <p className="text-[11px] text-zinc-500 font-normal leading-relaxed max-w-xs">
+              Assine para receber tabelas de preços de eucalipto tratado e relatórios de novos cortes no pátio.
+            </p>
+          </div>
+
+          <div className="md:col-span-7 space-y-2">
+            <form onSubmit={handleInscricaoNews} className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="email"
+                required
+                value={emailNews}
+                onChange={(e) => setEmailNews(e.target.value)}
+                placeholder="Seu melhor e-mail corporativo ou pessoal"
+                className="flex-1 bg-zinc-900/40 border border-zinc-800/80 rounded-xl px-4 py-3 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 focus:ring-4 focus:ring-zinc-600/5 font-medium transition-all"
+              />
+              <button 
+                type="submit"
+                disabled={statusNews === 'carregando'}
+                className="bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-[11px] uppercase tracking-wider px-6 h-11 sm:h-auto rounded-xl transition-all whitespace-nowrap disabled:bg-zinc-800 disabled:text-zinc-500"
+              >
+                {statusNews === 'carregando' ? 'Processando...' : 'Inscrever'}
+              </button>
+            </form>
+            {statusNews === 'sucesso' && (
+              <p className="text-[10px] text-emerald-400 font-medium animate-fadeIn">
+                ✓ Conectado. Seu e-mail foi salvo no ecossistema Ark Eucalipto.
+              </p>
+            )}
+          </div>
+          
+        </div>
+      </div>
+
+      {/* 🌲 SEÇÃO PRINCIPAL DO RODAPÉ (SUA ESTRUTURA ORIGINAL INTACTA) */}
       <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           

@@ -1,8 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Footer from '@/components/Footer'; // Importação única e oficial do seu rodapé unificado
+
+// 🟢 CORRIGIDO: Voltamos com o '@/' correto que seu projeto reconhece e precisa
+const NewsletterPopup = dynamic(() => import('@/components/NewsletterPopup'), {
+  ssr: false,
+});
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -17,13 +23,12 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       .catch((err) => console.error('Erro no barramento de dados do Layout:', err));
   }, []);
 
-  // Removi a trava do "if (carregando)" para que a estrutura visual nunca seja bloqueada
   const whatsappLimpo = config?.whatsapp?.replace(/\D/g, '') || '73982365475';
 
   return (
-    <div className="min-h-screen bg-stone-50 text-zinc-800 font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-stone-50 text-zinc-800 font-sans flex flex-col justify-between selection:bg-emerald-50 selection:text-emerald-800">
       
-      {/* 🚀 O Header agora renderiza direto na inicialização do app */}
+      {/* 🚀 O Header renderiza direto na inicialização do app */}
       <Header 
         config={config} 
         whatsappLimpo={whatsappLimpo} 
@@ -36,8 +41,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
 
-      {/* 🚀 O Footer também fica visível desde o primeiro milissegundo */}
+      {/* 🚀 O Footer unificado que já carrega o bloco da newsletter embutido */}
       <Footer dados={config} />
+
+      {/* 🟢 POP-UP INTELIGENTE (Carregado de forma leve em segundo plano) */}
+      <NewsletterPopup />
       
     </div>
   );
