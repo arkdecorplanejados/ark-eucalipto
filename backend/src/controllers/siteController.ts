@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import admin from 'firebase-admin';
 import { v2 as cloudinary } from 'cloudinary';
 
-const db = admin.firestore();
+// 🟢 UNIFICADO: Puxa exatamente a mesma gaveta e credencial que as rotas de leads usam
+import { db } from '../lib/firebase.js'; 
 
 // 🌐 1. Busca as configurações com o Firestore e entrega o Fallback de Segurança
 export const getConfig = async (req: Request, res: Response): Promise<void> => {
@@ -18,7 +19,7 @@ export const getConfig = async (req: Request, res: Response): Promise<void> => {
         whatsapp: "77999999999", 
         email: "contato@arkdecor.com.br",
         endereco: "Vitória da Conquista - BA\nAtendimento a Canteiros de Obra e Indústrias",
-        descricaoSite: "Soluções sustentáveis em madeira bruta, escoramentos e biomassa para toda a Bahia. Faturamento direto do produtor.",
+        descricaoSite: "Soluções sustentáveis in madeira bruta, escoramentos e biomassa para toda a Bahia. Faturamento direto do produtor.",
         menu: [
           { id: "1", label: "Início", href: "/" },
           { id: "2", label: "Produtos", href: "/produtos" },
@@ -36,7 +37,7 @@ export const getConfig = async (req: Request, res: Response): Promise<void> => {
           { icone: "🚛", titulo: "Pronta Entrega", subtitulo: "Logística Ágil", texto: "Pátio estrategicamente abastecido em Vitória da Conquista. Atendemos demandas imediatas." },
           { icone: "🏗️", titulo: "Alta Densidade", subtitulo: "Escoramento Seguro", texto: "Madeira bruta selecionada na fonte, com excelente rigidez estrutural testada para lajes." },
           { icone: "💰", titulo: "Preço Direto", subtitulo: "Economia Real", texto: "Negociação direto com quem extrai e distribui, garantindo o menor custo por metro linear." },
-          { icone: "📄", titulo: "100% Legal", subtitulo: "Documentação Florestal", texto: "Segurança jurídica total. Todo o nosso volume acompanha o Documento de Origem Florestal (DOF)." }
+          { icone: "🚛", titulo: "100% Legal", subtitulo: "Documentação Florestal", texto: "Segurança jurídica total. Todo o nosso volume acompanha o Documento de Origem Florestal (DOF)." }
         ],
         setores: [
           { icone: "🌾", titulo: "Agronegócio", subtitulo: "Uso Rural", texto: "Abastecimento para cercamentos, estacas de demarcação e balancins rurais direto do produtor.", linkTexto: "Falar com Especialista Rural" },
@@ -49,10 +50,10 @@ export const getConfig = async (req: Request, res: Response): Promise<void> => {
           imagemUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09"
         },
         faq: [
-          { pregunta: "Qual é a diferença prática do Eucalipto In Natura para o Tratado?", resposta: "O eucalipto in natura é a madeira bruta, recém-colhida e sem aditivos químicos. Ele mantém toda a resistência mecânica natural do tronco, sendo a solução com melhor custo-benefício para usos temporários ou estruturais rápidos, como escoramentos de laje, pontaletes rurais e queima industrial (biomassa)." },
-          { pregunta: "Como funciona o transporte e a emissão do DOF (Documento de Origem Florestal)?", resposta: "Toda a nossa madeira é extraída de florestas plantadas e regulamentadas. Emitimos e enviamos a carga acompanhada da Nota Fiscal e do DOF impresso e eletrônico. Isso garante total segurança jurídica nas rodovias e conformidade ambiental para construtoras e indústrias parceiras." },
-          { pregunta: "Vocês atendem pedidos fracionados ou apenas cargas fechadas?", resposta: "Com nosso pátio logístico centralizado em Vitória da Conquista - BA, conseguimos atender desde o pequeno produtor rural e mestre de obras com volumes fracionados retirados no local, até contratos industriais de fornecimento contínuo de carga fechada (truco ou carreta) entregues na planta." },
-          { pregunta: "Qual é a durabilidade estimada da madeira in natura em contato com o solo?", resposta: "A durabilidade depende diretamente da umidade do local e do tipo de aplicação. Para uso aéreo ou escoramento de obras (onde a madeira permanece seca), ela mantém a integridade estrutural por muitos anos. Para contato direto enterrado no solo, sua vida útil é reduzida, sendo recomendada para fins temporários ou cercamentos econômicos." }
+          { pergunta: "Qual é a diferença prática do Eucalipto In Natura para o Tratado?", resposta: "O eucalipto in natura é a madeira bruta, recém-colhida e sem aditivos químicos. Ele mantém toda a resistência mecânica natural do tronco, sendo a solução com melhor custo-benefício para usos temporários ou estruturais rápidos, como escoramentos de laje, pontaletes rurais e queima industrial (biomassa)." },
+          { pergunta: "Como funciona o transporte e a emissão do DOF (Documento de Origem Florestal)?", resposta: "Toda a nossa madeira é extraída de florestas plantadas e regulamentadas. Emitimos e enviamos a carga acompanhada da Nota Fiscal e do DOF impresso e eletrônico. Isso garante total segurança jurídica nas rodovias e conformidade ambiental para construtoras e indústrias parceiras." },
+          { pergunta: "Vocês atendem pedidos fracionados ou apenas cargas fechadas?", resposta: "Com nosso pátio logístico centralizado em Vitória da Conquista - BA, conseguimos atender desde o pequeno produtor rural e mestre de obras com volumes fracionados retirados no local, até contratos industriais de fornecimento contínuo de carga fechada (truco ou carreta) entregues na planta." },
+          { pergunta: "Qual é a durabilidade estimada da madeira in natura em contato com o solo?", resposta: "A durabilidade depende diretamente da umidade do local e do tipo de aplicação. Para uso aéreo ou escoramento de obras (onde a madeira permanece seca), ela mantém a integridade estrutural por muitos anos. Para contato direto enterrado no solo, sua vida útil é reduzida, sendo recomendada para fins temporários ou cercamentos econômicos." }
         ],
         produtosVitrine: []
       };

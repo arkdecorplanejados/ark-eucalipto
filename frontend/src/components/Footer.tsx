@@ -37,6 +37,7 @@ export default function Footer({ dados }: FooterProps) {
   };
 
   // 📡 ENVIO DOS DADOS DA NEWSLETTER PARA A API
+ // 📡 ENVIO DOS DADOS DA NEWSLETTER PARA A API (Ajustado para Diagnóstico)
   const handleInscricaoNews = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusNews('carregando');
@@ -46,19 +47,22 @@ export default function Footer({ dados }: FooterProps) {
       const resposta = await fetch(`${apiUrl}/api/site/newsletter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailNews }),
+        body: JSON.stringify({ email: emailNews.trim().toLowerCase() }),
       });
 
-      if (!resposta.ok) throw new Error();
+      if (!resposta.ok) {
+        const erroTexto = await resposta.text();
+        throw new Error(erroTexto || 'Erro na resposta do servidor');
+      }
 
       setStatusNews('sucesso');
       setEmailNews('');
       setTimeout(() => setStatusNews('ocioso'), 4000);
     } catch (err) {
-      // Fallback seguro de interface para o cliente não ver erro caso a rota do back ainda esteja subindo
-      setStatusNews('sucesso');
-      setEmailNews('');
-      setTimeout(() => setStatusNews('ocioso'), 4000);
+      console.error('❌ Falha real no envio da newsletter:', err);
+      // Mantemos o estado de ocioso para você saber que o servidor barrou o dado
+      setStatusNews('ocioso');
+      alert('O servidor barrou o cadastro. Verifique os logs do console do navegador.');
     }
   };
 
