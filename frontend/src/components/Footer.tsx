@@ -37,14 +37,15 @@ export default function Footer({ dados }: FooterProps) {
   };
 
   // 📡 ENVIO DOS DADOS DA NEWSLETTER PARA A API
- // 📡 ENVIO DOS DADOS DA NEWSLETTER PARA A API (Ajustado para Diagnóstico)
   const handleInscricaoNews = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusNews('carregando');
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const resposta = await fetch(`${apiUrl}/api/site/newsletter`, {
+      
+      // 🟢 CORRIGIDO: Aponta exatamente para o barramento de leads unificado
+      const resposta = await fetch(`${apiUrl}/api/leads/newsletter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailNews.trim().toLowerCase() }),
@@ -60,7 +61,7 @@ export default function Footer({ dados }: FooterProps) {
       setTimeout(() => setStatusNews('ocioso'), 4000);
     } catch (err) {
       console.error('❌ Falha real no envio da newsletter:', err);
-      // Mantemos o estado de ocioso para você saber que o servidor barrou o dado
+      // Mantém o estado ocioso em caso de falha real para diagnóstico visual preciso
       setStatusNews('ocioso');
       alert('O servidor barrou o cadastro. Verifique os logs do console do navegador.');
     }
@@ -113,7 +114,7 @@ export default function Footer({ dados }: FooterProps) {
         </div>
       </div>
 
-      {/* 🌲 SEÇÃO PRINCIPAL DO RODAPÉ (SUA ESTRUTURA ORIGINAL INTACTA) */}
+      {/* 🌲 SEÇÃO PRINCIPAL DO RODAPÉ */}
       <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           

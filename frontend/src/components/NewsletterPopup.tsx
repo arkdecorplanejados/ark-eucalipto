@@ -31,22 +31,27 @@ export default function NewsletterPopup() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const resposta = await fetch(`${apiUrl}/api/site/newsletter`, {
+      
+      // 🟢 CORRIGIDO: Agora aponta exatamente para o barramento correto de leads
+      const resposta = await fetch(`${apiUrl}/api/leads/newsletter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
 
-      if (!resposta.ok) throw new Error();
+      if (!resposta.ok) {
+        const erroTexto = await resposta.text();
+        throw new Error(erroTexto || 'Erro na resposta do servidor');
+      }
 
       setStatus('sucesso');
       localStorage.setItem('ark_newsletter_popup', 'inscrito');
       setTimeout(() => setAberto(false), 2500);
     } catch (err) {
-      // Fallback seguro caso a rota de API ainda não esteja rodando na Render
-      setStatus('sucesso');
-      localStorage.setItem('ark_newsletter_popup', 'inscrito');
-      setTimeout(() => setAberto(false), 2500);
+      console.error('❌ Falha real no envio do pop-up:', err);
+      // Mantém o estado ocioso em falhas reais para diagnóstico visual claro
+      setStatus('ocioso');
+      alert('O servidor barrou o cadastro do Pop-up. Verifique os logs do console.');
     }
   };
 

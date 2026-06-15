@@ -1,9 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { db } from '../lib/firebase.js';
+import admin from 'firebase-admin'; // ⚙️ Importado para gerar o serverTimestamp oficial
 
 const router = Router();
 
-// 1. Rota para Listar todos os Leads (Usada no seu painel administrativo)
+// 1. Rota para Listar todos os Leads de Prospecção (Usada no painel admin)
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const leadsSnapshot = await db.collection('leads').orderBy('createdAt', 'desc').get();
@@ -19,7 +20,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// 🟢 NOVO - 1B. Rota para Listar os e-mails capturados pela Newsletter do Site
+// 🔵 1B. Rota para Listar os e-mails da Newsletter (Usada na aba do Admin)
 // GET http://localhost:3001/api/leads/newsletter
 router.get('/newsletter', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -31,6 +32,39 @@ router.get('/newsletter', async (req: Request, res: Response, next: NextFunction
     }));
 
     res.status(200).json(emailsCapturados);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 📥 1C. NOVA ROTA ADICIONADA: Salva o e-mail vindo do site usando a rota certa (Acaba com o 404)
+// POST http://localhost:3001/api/leads/newsletter
+router.post('/newsletter', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+       res.status(400).json({ error: 'O campo e-mail é obrigatório.' });
+       return;
+    }
+
+    const emailTratado = email.trim().toLowerCase();
+    const newsletterRef = db.collection('newsletter');
+
+    // 🛡️ Proteção anti-duplicidade direta pela instância oficial da lib
+    const querySnapshot = await newsletterRef.where('email', '==', emailTratado).get();
+    if (!querySnapshot.empty) {
+       res.status(200).json({ message: 'Este e-mail já está cadastrado no informativo da Ark.' });
+       return;
+    }
+
+    // 💾 Salva com segurança na mesma coleção que o Admin lê
+    await newsletterRef.add({
+      email: emailTratado,
+      dataInscricao: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.status(201).json({ message: 'Inscrição realizada com sucesso!' });
   } catch (error) {
     next(error);
   }
@@ -50,7 +84,6 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       aiJustification 
     } = req.body;
 
-    // Validação básica de padrão dev
     if (!companyName || !segment) {
        res.status(400).json({ error: 'Nome da empresa e segmento são obrigatórios.' });
        return;
@@ -58,12 +91,12 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
     const newLead = {
       companyName,
-      segment, // FAZENDA, INDUSTRIA_CERCA, CONSTRUTORA, etc.
+      segment, 
       contactName: contactName || null,
       phone: phone || null,
       email: email || null,
       location: location || 'Não informada',
-      status: 'NEW', // Padrão inicial
+      status: 'NEW', 
       aiScore: aiScore || 0,
       aiJustification: aiJustification || null,
       createdAt: new Date().toISOString(),
