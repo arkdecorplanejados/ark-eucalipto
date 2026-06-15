@@ -49,10 +49,10 @@ export const getConfig = async (req: Request, res: Response): Promise<void> => {
           imagemUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09"
         },
         faq: [
-          { pergunta: "Qual é a diferença prática do Eucalipto In Natura para o Tratado?", resposta: "O eucalipto in natura é a madeira bruta, recém-colhida e sem aditivos químicos. Ele mantém toda a resistência mecânica natural do tronco, sendo a solução com melhor custo-benefício para usos temporários ou estruturais rápidos, como escoramentos de laje, pontaletes rurais e queima industrial (biomassa)." },
-          { pergunta: "Como funciona o transporte e a emissão do DOF (Documento de Origem Florestal)?", resposta: "Toda a nossa madeira é extraída de florestas plantadas e regulamentadas. Emitimos e enviamos a carga acompanhada da Nota Fiscal e do DOF impresso e eletrônico. Isso garante total segurança jurídica nas rodovias e conformidade ambiental para construtoras e indústrias parceiras." },
-          { pergunta: "Vocês atendem pedidos fracionados ou apenas cargas fechadas?", resposta: "Com nosso pátio logístico centralizado em Vitória da Conquista - BA, conseguimos atender desde o pequeno produtor rural e mestre de obras com volumes fracionados retirados no local, até contratos industriais de fornecimento contínuo de carga fechada (truco ou carreta) entregues na planta." },
-          { pergunta: "Qual é a durabilidade estimada da madeira in natura em contato com o solo?", resposta: "A durabilidade depende diretamente da umidade do local e do tipo de aplicação. Para uso aéreo ou escoramento de obras (onde a madeira permanece seca), ela mantém a integridade estrutural por muitos anos. Para contato direto enterrado no solo, sua vida útil é reduzida, sendo recomendada para fins temporários ou cercamentos econômicos." }
+          { pregunta: "Qual é a diferença prática do Eucalipto In Natura para o Tratado?", resposta: "O eucalipto in natura é a madeira bruta, recém-colhida e sem aditivos químicos. Ele mantém toda a resistência mecânica natural do tronco, sendo a solução com melhor custo-benefício para usos temporários ou estruturais rápidos, como escoramentos de laje, pontaletes rurais e queima industrial (biomassa)." },
+          { pregunta: "Como funciona o transporte e a emissão do DOF (Documento de Origem Florestal)?", resposta: "Toda a nossa madeira é extraída de florestas plantadas e regulamentadas. Emitimos e enviamos a carga acompanhada da Nota Fiscal e do DOF impresso e eletrônico. Isso garante total segurança jurídica nas rodovias e conformidade ambiental para construtoras e indústrias parceiras." },
+          { pregunta: "Vocês atendem pedidos fracionados ou apenas cargas fechadas?", resposta: "Com nosso pátio logístico centralizado em Vitória da Conquista - BA, conseguimos atender desde o pequeno produtor rural e mestre de obras com volumes fracionados retirados no local, até contratos industriais de fornecimento contínuo de carga fechada (truco ou carreta) entregues na planta." },
+          { pregunta: "Qual é a durabilidade estimada da madeira in natura em contato com o solo?", resposta: "A durabilidade depende diretamente da umidade do local e do tipo de aplicação. Para uso aéreo ou escoramento de obras (onde a madeira permanece seca), ela mantém a integridade estrutural por muitos anos. Para contato direto enterrado no solo, sua vida útil é reduzida, sendo recomendada para fins temporários ou cercamentos econômicos." }
         ],
         produtosVitrine: []
       };
@@ -92,7 +92,6 @@ export const uploadImagem = async (req: Request, res: Response): Promise<void | 
       return res.status(400).json({ error: "Nenhum arquivo de imagem foi enviado." });
     }
 
-    // Valida se as variáveis do Cloudinary existem antes de iniciar o stream
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
       return res.status(500).json({ error: "Credenciais do Cloudinary ausentes no arquivo .env." });
     }
@@ -123,5 +122,38 @@ export const uploadImagem = async (req: Request, res: Response): Promise<void | 
   } catch (error) {
     console.error("Erro no método uploadImagem:", error);
     return res.status(500).json({ error: "Erro interno ao processar upload de imagem." });
+  }
+};
+
+// 🟢 4. NEWSLETTER CONTROLLER: Captura leads, valida duplicidade e salva no Firestore
+export const inscreverNewsletter = async (req: Request, res: Response): Promise<void | Response> => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "O campo e-mail é obrigatório." });
+    }
+
+    const emailTratado = email.trim().toLowerCase();
+    const newsletterRef = db.collection('newsletter');
+
+    // 🔍 Anti-duplicidade: Verifica usando o padrão do firebase-admin se o e-mail já existe
+    const querySnapshot = await newsletterRef.where('email', '==', emailTratado).get();
+
+    if (!querySnapshot.empty) {
+      return res.status(200).json({ message: "Este e-mail já está cadastrado no informativo da Ark." });
+    }
+
+    // 💾 Gravação oficial utilizando o FieldValue do admin para o carimbo de data do servidor
+    await newsletterRef.add({
+      email: emailTratado,
+      dataInscricao: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return res.status(201).json({ message: "Inscrição realizada com sucesso!" });
+
+  } catch (error) {
+    console.error("Erro interno no método inscreverNewsletter:", error);
+    return res.status(500).json({ error: "Erro interno no servidor ao salvar cadastro da newsletter." });
   }
 };

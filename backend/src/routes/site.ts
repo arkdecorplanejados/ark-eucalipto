@@ -1,6 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
-import { getConfig, updateConfig, uploadImagem } from "../controllers/siteController.js";
+// ⚙️ Adicionamos 'inscreverNewsletter' na linha de importação abaixo:
+import { getConfig, updateConfig, uploadImagem, inscreverNewsletter } from "../controllers/siteController.js";
 
 const router = Router();
 
@@ -18,5 +19,8 @@ router.post("/config/atualizar", updateConfig);
 
 // 📷 POST: Rota de upload que estava dando 404
 router.post("/upload", upload.single("file"), uploadImagem);
+
+// ✉️ O QUE ADICIONAMOS: Rota que o Footer.tsx e o Popup vão chamar para capturar e-mails
+router.post("/site/newsletter", inscreverNewsletter);
 
 export default router;
