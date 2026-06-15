@@ -3,7 +3,7 @@ import { db } from '../lib/firebase.js';
 
 const router = Router();
 
-// 1. Rota para Listar todos os Leads (Será usada no seu painel administrativo)
+// 1. Rota para Listar todos os Leads (Usada no seu painel administrativo)
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const leadsSnapshot = await db.collection('leads').orderBy('createdAt', 'desc').get();
@@ -14,6 +14,23 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     }));
 
     res.status(200).json(leads);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 🟢 NOVO - 1B. Rota para Listar os e-mails capturados pela Newsletter do Site
+// GET http://localhost:3001/api/leads/newsletter
+router.get('/newsletter', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const newsletterSnapshot = await db.collection('newsletter').orderBy('dataInscricao', 'desc').get();
+    
+    const emailsCapturados = newsletterSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.status(200).json(emailsCapturados);
   } catch (error) {
     next(error);
   }
