@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import Diferenciais from '@/components/Diferenciais';
 import Setores from '@/components/Setores';
+
+// 🚀 CARREGAMENTO PREGUIÇOSO DO ESQUELETO: Só puxa se o banco de dados atrasar
+const SkeletonHome = dynamic(() => import('@/components/SkeletonHome'), {
+  ssr: false,
+});
 
 interface Produto {
   id: string;
@@ -19,14 +25,21 @@ export default function PublicPage() {
   const [config, setConfig] = useState<any>(null);
   const [termoBusca, setTermoBusca] = useState<string>('');
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('todos');
+  const [carregando, setCarregando] = useState<boolean>(true);
 
   // 📡 Carregamento de configurações do pátio
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     fetch(`${apiUrl}/api/site/config`)
       .then((res) => res.json())
-      .then((data) => setConfig(data))
-      .catch((err) => console.error('Erro ao carregar dados da Home:', err));
+      .then((data) => {
+        setConfig(data);
+        setCarregando(false); // 🚀 Dados chegaram, desliga o esqueleto
+      })
+      .catch((err) => {
+        console.error('Erro ao carregar dados da Home:', err);
+        setCarregando(false);
+      });
   }, []);
 
   // 🔄 Rotação Automática dos Slides (Troca a cada 5 segundos)
@@ -40,12 +53,9 @@ export default function PublicPage() {
     return () => clearInterval(intervalo);
   }, [config?.slides]);
 
-  if (!config) {
-    return (
-      <div className="w-full flex items-center justify-center py-32 bg-stone-50">
-        <p className="text-emerald-800 font-medium animate-pulse">Sincronizando pátio...</p>
-      </div>
-    );
+  // 🟢 ENQUANTO O BACK-END ACORDA: Exibe a estrutura fantasma premium
+  if (carregando || !config) {
+    return <SkeletonHome />;
   }
 
   const whatsappLimpo = config?.whatsapp?.replace(/\D/g, '') || '';
@@ -58,13 +68,10 @@ export default function PublicPage() {
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full animate-fadeIn">
       
-      {/* 🌳 1. HERO PRINCIPAL COM TRANSIÇÃO EM FADE DINÂMICO */}
-     {/* 🌳 1. HERO PRINCIPAL COM TRANSIÇÃO EM FADE DINÂMICO E GRADIENTE SUAVIZADO */}
+      {/* 🌳 1. HERO PRINCIPAL COM TRANSIÇÃO EM FADE DINÂMICO E GRADIENTE SUAVIZADO */}
       <section className="relative bg-emerald-950 text-white py-36 px-6 overflow-hidden h-[540px] flex items-center justify-center">
-        
-        {/* Renderização de backgrounds sobrepostos para efeito cruzado */}
         {(config?.slides || []).map((slide: any, idx: number) => (
           <div
             key={slide.id || `bg-slide-${idx}`}
@@ -79,16 +86,12 @@ export default function PublicPage() {
           </div>
         ))}
         
-       {/* 🎛️ CAMADAS DE CORREÇÃO VISUAL PARA MÁXIMA SUAVIDADE (ANTI-NÉVOA) */}
-        <div className="absolute inset-0 bg-stone-950/45 z-10" /> {/* Contraste para leitura do texto */}
-        
-        {/* Transição ultra diluída e estendida: começa imperceptível e acompanha a escuridão das árvores */}
+        <div className="absolute inset-0 bg-stone-950/45 z-10" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent from-70% via-stone-50/[0.02] via-[68%] via-stone-50/[0.12] via-[76%] via-stone-50/[0.35] via-[84%] via-stone-50/[0.70] via-[92%] to-stone-50 z-10" />
         
-        {/* Bloco de Conteúdo com transição interna */}
         <div className="relative max-w-5xl mx-auto text-center space-y-6 z-20">
           <span className="bg-emerald-800/80 text-emerald-200 border border-emerald-600 px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-sm inline-block">
-            Direto do Produtor • Faturamento Direto
+            Direto do Produtor • Faturamento Directo
           </span>
           
           <div className="min-h-[160px] flex flex-col justify-center">
@@ -100,7 +103,6 @@ export default function PublicPage() {
             </p>
           </div>
 
-          {/* Indicadores do Slide ativo (Bolinhas) */}
           {config?.slides?.length > 1 && (
             <div className="flex justify-center gap-2 pt-6">
               {config.slides.map((_: any, idx: number) => (
@@ -123,49 +125,44 @@ export default function PublicPage() {
       <div className="bg-stone-50">
         <Diferenciais diferenciais={config?.diferenciais} />
       </div>
-      {/* 🚛 3. PARALLAX DE LOGÍSTICA (CAMINHÃO DE CARGA) */}
-     {/* 🚛 3. PARALLAX DE LOGÍSTICA */}
-<section
-  className="relative h-[440px] bg-fixed bg-center bg-cover flex items-center justify-center overflow-hidden"
-  style={{
-    backgroundImage: `url(${
-      config?.parallax?.logistica?.imagemUrl ||
-      'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=1600'
-    })`,
-  }}
->
-  <div className="absolute inset-0 bg-stone-950/75 z-10" />
 
-  <div className="relative z-20 max-w-5xl px-6 text-center text-white space-y-6">
-    <h2 className="text-3xl md:text-5xl font-serif font-black tracking-tight uppercase text-stone-100">
-      {config?.parallax?.logistica?.titulo ||
-        'Logística Pesada e Entrega Programada'}
-    </h2>
-
-    <p className="text-sm md:text-base text-stone-300 max-w-2xl mx-auto font-light leading-relaxed">
-      {config?.parallax?.logistica?.subtitulo ||
-        'Abastecemos canteiros de obras, estruturas rurais e indústrias com faturamento direto da fonte em qualquer região do estado.'}
-    </p>
-  </div>
-</section>
+      {/* 🚛 3. PARALLAX DE LOGÍSTICA */}
+      <section
+        className="relative h-[440px] bg-fixed bg-center bg-cover flex items-center justify-center overflow-hidden"
+        style={{
+          backgroundImage: `url(${
+            config?.parallax?.logistica?.imagemUrl ||
+            'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=1600'
+          })`,
+        }}
+      >
+        <div className="absolute inset-0 bg-stone-950/75 z-10" />
+        <div className="relative z-20 max-w-5xl px-6 text-center text-white space-y-6">
+          <h2 className="text-3xl md:text-5xl font-serif font-black tracking-tight uppercase text-stone-100">
+            {config?.parallax?.logistica?.titulo || 'Logística Pesada e Entrega Programada'}
+          </h2>
+          <p className="text-sm md:text-base text-stone-300 max-w-2xl mx-auto font-light leading-relaxed">
+            {config?.parallax?.logistica?.subtitulo || 'Abastecemos canteiros de obras, structures rurais e indústrias com faturamento direto da fonte em qualquer região do estado.'}
+          </p>
+        </div>
+      </section>
 
       {/* 🚀 4. SETORES ATENDIDOS */}
       <div className="bg-white">
         <Setores whatsapp={whatsappLimpo} setores={config?.setores} />
       </div>
 
-      {/* 📊 5. MIX DE PRODUTOS ENVOLVIDO EM PARALLAX DE FLORESTA DE EUCALIPTO */}
+      {/* 📊 5. MIX DE PRODUTOS */}
       <main
-  id="catalogo"
-  className="relative bg-fixed bg-center bg-cover py-24 px-6 space-y-16 overflow-hidden text-stone-100"
-  style={{
-    backgroundImage: `url(${
-      config?.parallax?.catalogo?.imagemUrl ||
-      'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=1600'
-    })`,
-  }}
->
-        {/* Camada escura florestal por cima da imagem para dar contraste bruto nos cards */}
+        id="catalogo"
+        className="relative bg-fixed bg-center bg-cover py-24 px-6 space-y-16 overflow-hidden text-stone-100"
+        style={{
+          backgroundImage: `url(${
+            config?.parallax?.catalogo?.imagemUrl ||
+            'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=1600'
+          })`,
+        }}
+      >
         <div className="absolute inset-0 bg-emerald-950/90 z-10" />
         <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-zinc-900/40 opacity-10 z-10" />
         
@@ -183,7 +180,6 @@ export default function PublicPage() {
           </p>
         </div>
 
-        {/* Barra de Busca */}
         <div className="bg-zinc-900/90 backdrop-blur-sm border border-zinc-800 rounded-3xl p-6 shadow-2xl max-w-4xl mx-auto relative group transition-all duration-300 hover:border-emerald-600/50 z-20">
           <div className="relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 text-zinc-500 group-focus-within:text-emerald-400 transition-colors" />
@@ -197,7 +193,6 @@ export default function PublicPage() {
           </div>
         </div>
 
-        {/* Abas Categorias */}
         <div className="flex flex-wrap justify-center gap-2 max-w-4xl mx-auto relative z-20">
           {[
             { id: 'todos', label: 'Ver Todo o Estoque' },
@@ -219,7 +214,6 @@ export default function PublicPage() {
           ))}
         </div>
 
-        {/* Grid de Cards */}
         <div className="max-w-6xl mx-auto flex justify-center relative z-20">
           {produtosFiltrados.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
