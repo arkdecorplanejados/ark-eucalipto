@@ -37,7 +37,7 @@ router.get('/newsletter', async (req: Request, res: Response, next: NextFunction
   }
 });
 
-// 📥 1C. NOVA ROTA ADICIONADA: Salva o e-mail vindo do site usando a rota certa (Acaba com o 404)
+// 📥 1C. Rota de Salvamento da Newsletter vinda do site
 // POST http://localhost:3001/api/leads/newsletter
 router.post('/newsletter', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -51,7 +51,7 @@ router.post('/newsletter', async (req: Request, res: Response, next: NextFunctio
     const emailTratado = email.trim().toLowerCase();
     const newsletterRef = db.collection('newsletter');
 
-    // 🛡️ Proteção anti-duplicidade direta pela instância oficial da lib
+    // 🛡️ Proteção anti-duplicidade de e-mail
     const querySnapshot = await newsletterRef.where('email', '==', emailTratado).get();
     if (!querySnapshot.empty) {
        res.status(200).json({ message: 'Este e-mail já está cadastrado no informativo da Ark.' });
@@ -70,7 +70,7 @@ router.post('/newsletter', async (req: Request, res: Response, next: NextFunctio
   }
 });
 
-// 2. Rota para Criar um novo Lead (Usada manualmente ou pelo robô de IA de Prospecção)
+// 2. Rota para Criar um novo Lead (Com trava Anti-Duplicidade para o Robô de IA)
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { 
@@ -89,9 +89,23 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
        return;
     }
 
+    const nomeTratado = companyName.trim();
+    const leadsRef = db.collection('leads');
+
+    // 🛡️ TRAVA DE SEGURANÇA: Verifica se a empresa já foi cadastrada na base
+    const empresaExiste = await leadsRef.where('companyName', '==', nomeTratado).get();
+    if (!empresaExiste.empty) {
+      res.status(200).json({ 
+        message: `A empresa "${nomeTratado}" já consta no barramento estratégico da Ark. Ignorando duplicata.`,
+        id: empresaExiste.docs[0].id,
+        ...empresaExiste.docs[0].data()
+      });
+      return;
+    }
+
     const newLead = {
-      companyName,
-      segment, 
+      companyName: nomeTratado,
+      segment, // FAZENDA, INDUSTRIA_CERCA, CONSTRUTORA, etc.
       contactName: contactName || null,
       phone: phone || null,
       email: email || null,
