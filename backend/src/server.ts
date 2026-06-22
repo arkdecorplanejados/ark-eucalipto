@@ -47,7 +47,9 @@ if (!admin.apps.length) {
 // ========================================================
 
 // 2. SÓ IMPORTA O RESTANTE DO SISTEMA DEPOIS QUE O FIREBASE JÁ ESTÁ RODANDO
-import './utils/seedLeads.js';
+// 🟢 COMENTADO PARA REMOVER O SEED AUTOMÁTICO DE LEADS REPETIDOS:
+// import './utils/seedLeads.js';
+
 import leadRoutes from './routes/leads.js';
 import siteRoutes from './routes/site.js'; 
 
@@ -76,7 +78,7 @@ app.use('/api/site', siteRoutes);
 // 🔐 ENDPOINTS DE AUTENTICAÇÃO INTERNOS
 // ========================================================
 
-// 🟢 CADASTRO: /api/auth/register
+// CADASTRO: /api/auth/register
 app.post('/api/auth/register', async (req: Request, res: Response) => {
   const { nome, email, senha } = req.body;
 
@@ -103,7 +105,7 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
   }
 });
 
-// 🔵 LOGIN: /api/auth/login
+// LOGIN: /api/auth/login
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   const { email, senha } = req.body;
 
