@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Geral from './components/Geral';
 import Slides from './components/Slides';
 import Produtos from './components/Produtos';
+import NotasFiscais from './components/NotasFiscais';
+import Calendario from './components/Calendario'; 
 import Diferenciais from './components/Diferenciais'; 
 import FAQAdmin from './components/FAQ'; 
 
@@ -11,7 +13,7 @@ import FAQAdmin from './components/FAQ';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function CMSPage() {
-  // Alterada a aba inicial padrão para 'geral', focando no gerenciamento institucional
+  // Define 'geral' como a aba padrão inicial
   const [abaAtiva, setAbaAtiva] = useState<string>('geral');
   const [dados, setDados] = useState<any>({
     logoUrl: '', whatsapp: '', email: '', endereco: '', descricaoSite: '',
@@ -69,16 +71,18 @@ export default function CMSPage() {
   if (carregando) {
     return (
       <div className="p-8 text-emerald-800 font-black animate-pulse flex items-center gap-2">
-        <span>🔋</span> Sincronizando Layout do Site...
+        <span>🔋</span> Sincronizando Módulos do Pátio...
       </div>
     );
   }
 
-  // 🧹 Faxina concluída: Removidas as abas financeiro, notas e calendário do CMS
+  // 🟢 Abas ajustadas: Apenas o financeiro antigo foi removido! NFs e Calendário preservados.
   const abas = [
     { id: 'geral', label: 'Informações Gerais' },
-    { id: 'slides', label: 'Slides/Banners (Hero)' },
+    { id: 'notas', label: '📑 Notas Fiscais' }, 
+    { id: 'calendario', label: '🗓️ Agenda & Atividades' },
     { id: 'produtos', label: 'Vitrine do Pátio' },
+    { id: 'slides', label: 'Slides/Banners (Hero)' },
     { id: 'diferenciais', label: 'Diferenciais' },
     { id: 'faq', label: 'FAQ' } 
   ];
@@ -87,8 +91,8 @@ export default function CMSPage() {
     <div className="space-y-6 max-w-7xl mx-auto p-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-zinc-100 pb-5">
         <div>
-          <h1 className="text-2xl font-serif font-black text-zinc-900 uppercase tracking-tight">Gerenciar Design do Site</h1>
-          <p className="text-zinc-500 text-xs mt-0.5">Altere textos, banners e informações visuais que aparecem no site público.</p>
+          <h1 className="text-2xl font-serif font-black text-zinc-900 uppercase tracking-tight">Módulo de Gestão Central</h1>
+          <p className="text-zinc-500 text-xs mt-0.5">Administração da Ark Eucalipto: Infraestrutura institucional e fluxo analítico.</p>
         </div>
         <button 
           onClick={handleSalvar}
@@ -99,7 +103,7 @@ export default function CMSPage() {
         </button>
       </div>
 
-      {/* Navegação por Abas Modernas de Design */}
+      {/* Navegação por Abas */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-zinc-200">
         {abas.map(aba => (
           <button
@@ -119,6 +123,8 @@ export default function CMSPage() {
       {/* Container Dinâmico Isolado */}
       <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 shadow-sm">
         {abaAtiva === 'geral' && <Geral dados={dados} setDados={setDados} />}
+        {abaAtiva === 'notas' && <NotasFiscais />}
+        {abaAtiva === 'calendario' && <Calendario />}
         {abaAtiva === 'slides' && <Slides dados={dados} setDados={setDados} />}
         {abaAtiva === 'produtos' && <Produtos dados={dados} setDados={setDados} />}
         {abaAtiva === 'diferenciais' && <Diferenciais dados={dados} setDados={setDados} />}
