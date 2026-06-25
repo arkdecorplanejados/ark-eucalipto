@@ -4,9 +4,6 @@ import { useState, useEffect } from 'react';
 import Geral from './components/Geral';
 import Slides from './components/Slides';
 import Produtos from './components/Produtos';
-import SecaoFinanceiro from './components/Financeiro';
-import NotasFiscais from './components/NotasFiscais';
-import Calendario from './components/Calendario'; 
 import Diferenciais from './components/Diferenciais'; 
 import FAQAdmin from './components/FAQ'; 
 
@@ -14,7 +11,8 @@ import FAQAdmin from './components/FAQ';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function CMSPage() {
-  const [abaAtiva, setAbaAtiva] = useState<string>('financeiro');
+  // Alterada a aba inicial padrão para 'geral', focando no gerenciamento institucional
+  const [abaAtiva, setAbaAtiva] = useState<string>('geral');
   const [dados, setDados] = useState<any>({
     logoUrl: '', whatsapp: '', email: '', endereco: '', descricaoSite: '',
     menu: [], slides: [], diferenciais: [], setores: [],
@@ -50,7 +48,7 @@ export default function CMSPage() {
       });
   }, []);
 
-  // 💾 Salva todas as abas de uma vez no Firebase remoto
+  // 💾 Salva as abas de layout no Firebase remoto
   const handleSalvar = async () => {
     setSalvando(true);
     try {
@@ -71,18 +69,16 @@ export default function CMSPage() {
   if (carregando) {
     return (
       <div className="p-8 text-emerald-800 font-black animate-pulse flex items-center gap-2">
-        <span>🔋</span> Sincronizando Módulos do Pátio...
+        <span>🔋</span> Sincronizando Layout do Site...
       </div>
     );
   }
 
+  // 🧹 Faxina concluída: Removidas as abas financeiro, notas e calendário do CMS
   const abas = [
-    { id: 'financeiro', label: '📊 Financeiro SaaS' },
-    { id: 'notas', label: '📑 Notas Fiscais' }, 
-    { id: 'calendario', label: '🗓️ Agenda & Atividades' },
-    { id: 'produtos', label: 'Vitrine do Pátio' },
-    { id: 'slides', label: 'Slides/Banners (Hero)' },
     { id: 'geral', label: 'Informações Gerais' },
+    { id: 'slides', label: 'Slides/Banners (Hero)' },
+    { id: 'produtos', label: 'Vitrine do Pátio' },
     { id: 'diferenciais', label: 'Diferenciais' },
     { id: 'faq', label: 'FAQ' } 
   ];
@@ -91,19 +87,19 @@ export default function CMSPage() {
     <div className="space-y-6 max-w-7xl mx-auto p-2">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-zinc-100 pb-5">
         <div>
-          <h1 className="text-2xl font-serif font-black text-zinc-900 uppercase tracking-tight">Módulo de Gestão Central</h1>
-          <p className="text-zinc-500 text-xs mt-0.5">Administração da Ark Eucalipto: Infraestrutura institucional e fluxo analítico.</p>
+          <h1 className="text-2xl font-serif font-black text-zinc-900 uppercase tracking-tight">Gerenciar Design do Site</h1>
+          <p className="text-zinc-500 text-xs mt-0.5">Altere textos, banners e informações visuais que aparecem no site público.</p>
         </div>
         <button 
           onClick={handleSalvar}
           disabled={salvando}
           className="w-full sm:w-auto bg-emerald-700 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-emerald-800 transition-all shadow-md disabled:opacity-50"
         >
-          {salvando ? 'Salvando Alterações...' : 'Publicar Mudanças'}
+          {salvando ? 'Salvando...' : 'Publicar Mudanças'}
         </button>
       </div>
 
-      {/* Navegação por Abas Modernas */}
+      {/* Navegação por Abas Modernas de Design */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-zinc-200">
         {abas.map(aba => (
           <button
@@ -122,9 +118,6 @@ export default function CMSPage() {
 
       {/* Container Dinâmico Isolado */}
       <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 shadow-sm">
-        {abaAtiva === 'financeiro' && <SecaoFinanceiro />}
-        {abaAtiva === 'notas' && <NotasFiscais />}
-        {abaAtiva === 'calendario' && <Calendario />}
         {abaAtiva === 'geral' && <Geral dados={dados} setDados={setDados} />}
         {abaAtiva === 'slides' && <Slides dados={dados} setDados={setDados} />}
         {abaAtiva === 'produtos' && <Produtos dados={dados} setDados={setDados} />}
