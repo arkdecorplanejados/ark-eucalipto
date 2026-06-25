@@ -47,11 +47,9 @@ if (!admin.apps.length) {
 // ========================================================
 
 // 2. SÓ IMPORTA O RESTANTE DO SISTEMA DEPOIS QUE O FIREBASE JÁ ESTÁ RODANDO
-// 🟢 COMENTADO PARA REMOVER O SEED AUTOMÁTICO DE LEADS REPETIDOS:
-// import './utils/seedLeads.js';
-
 import leadRoutes from './routes/leads.js';
 import siteRoutes from './routes/site.js'; 
+import financeRoutes from './routes/finance.js'; // 🟢 INJETADO: Import do novo módulo financeiro
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -73,6 +71,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Vincula as rotas de gerenciamento
 app.use('/api/leads', leadRoutes);
 app.use('/api/site', siteRoutes); 
+app.use('/api/finance', financeRoutes); // 🟢 INJETADO: Prefixo global para o fluxo de caixa da Ark
 
 // ========================================================
 // 🔐 ENDPOINTS DE AUTENTICAÇÃO INTERNOS
