@@ -70,15 +70,15 @@ router.post('/newsletter', async (req: Request, res: Response, next: NextFunctio
   }
 });
 
-// 2. Rota para Criar um novo Lead (Com trava Anti-Duplicidade Blindada para o Robô de IA)
+// 2. Rota para Criar um novo Lead (Com trava Anti-Duplicidade Blindada e Mapeamento Unificado)
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // 🛡️ Mapeamento preventivo caso a IA mude o nome da chave da propriedade no payload
-    const rawCompanyName = req.body.companyName || req.body.nome || req.body.title;
+    // 🛡️ Mapeamento preventivo inteligente que suporta tanto o Robô (Payload em Inglês) quanto o Formulário (Payload em Português)
+    const rawCompanyName = req.body.companyName || req.body.empresa || req.body.nome || req.body.title;
     const rawSegment = req.body.segment || req.body.categoria || req.body.segmento;
 
     if (!rawCompanyName || !rawSegment) {
-       res.status(400).json({ error: 'Nome da empresa e segmento são obrigatórios.' });
+       res.status(400).json({ error: 'Nome da empresa/cliente e segmento são obrigatórios.' });
        return;
     }
 
@@ -86,11 +86,11 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     const segmentoTratado = rawSegment.trim().toUpperCase();
     const leadsRef = db.collection('leads');
 
-    // 🔒 TRAVA ANTIDUPLICIDADE BLINDADA: Busca exata pelo nome limpo
+    // 🔒 TRAVA ANTIDUPLICIDADE BLINDADA: Busca exata pelo nome limpo para evitar cópias no Firebase
     const querySnapshot = await leadsRef.where('companyName', '==', nomeTratado).get();
     
     if (!querySnapshot.empty) {
-      // Se já existir qualquer registro com esse mesmo nome, barra o robô imediatamente
+      // Se já existir qualquer registro com esse mesmo nome, barra a inserção imediatamente
       res.status(200).json({ 
         message: `A empresa "${nomeTratado}" já consta no barramento estratégico da Ark. Ignorando duplicata.`,
         id: querySnapshot.docs[0].id,
@@ -99,24 +99,23 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
 
-    const { 
-      contactName, 
-      phone, 
-      email, 
-      location, 
-      aiScore, 
-      aiJustification 
-    } = req.body;
+    // Extração flexível dos campos restantes do corpo da requisição
+    const contactName = req.body.contactName || req.body.nome || null;
+    const phone = req.body.phone || req.body.telefone || null;
+    const email = req.body.email || null;
+    const location = req.body.location || req.body.origem || 'Não informada';
+    const aiScore = req.body.aiScore || 0;
+    const aiJustification = req.body.aiJustification || req.body.mensagem || null;
 
     const newLead = {
       companyName: nomeTratado,
-      segment: segmentoTratado, // FAZENDA, INDUSTRIA_CERCA, etc.
-      contactName: contactName || null,
+      segment: segmentoTratado, // EX: TRATADO, RURAL, FAZENDA, INDUSTRIA_CERCA
+      contactName: contactName ? contactName.trim() : null,
       phone: phone || null,
-      email: email || null,
-      location: location || 'Não informada',
+      email: email ? email.trim().toLowerCase() : null,
+      location: location,
       status: 'NEW', 
-      aiScore: aiScore || 0,
+      aiScore: aiScore,
       aiJustification: aiJustification || null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(), // ⚙️ ServerTimestamp nativo e seguro
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
