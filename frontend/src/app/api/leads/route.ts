@@ -41,33 +41,30 @@ export async function POST(request: Request) {
     };
 
     // 🟢 CONEXÃO REAL COM O BACK-END (Gravação no Firebase Firestore)
-    // Envia os dados limpos seguindo o padrão que criamos na API do Back-end (porta 3001)
     try {
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       await fetch(`${backendUrl}/api/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          companyName: leadRoteado.empresa || leadRoteado.nome, // Se não tiver empresa cadastrada, usa o nome do contato
+          companyName: leadRoteado.empresa || leadRoteado.nome,
           segment: (leadRoteado.categoria || 'GERAL').toUpperCase(),
           contactName: leadRoteado.nome,
           phone: leadRoteado.telefone,
           email: leadRoteado.email || null,
           location: leadRoteado.origem || 'Vitória da Conquista - BA',
-          aiScore: 90, // Como vem do site real, score alto padrão
+          aiScore: 90,
           aiJustification: `Lead qualificado vindo do formulário da Vitrine do Site. Interesse em: ${leadRoteado.categoria}.`
         })
       });
       console.log("💾 Lead gravado com sucesso no Firebase via Back-end!");
     } catch (dbErr) {
       console.error("❌ Erro ao enviar lead para o back-end:", dbErr);
-      // Mantém a execução para não travar o fluxo do cliente nem o Telegram se o back off-line
     }
 
-    // ⚡ Disparo Push em Tempo Real via Telegram
-    const mensagemTelegram = `
-🌲 *NOVO LEAD CAPTURADO!*
------------------------------------------
+    // ⚡ Disparo Push em Tempo Real via Telegram (Formatação limpa e segura para Markdown)
+    const mensagemTelegram = `🌲 *NOVO LEAD CAPTURADO!*
+
 👤 *Cliente:* ${leadRoteado.nome}
 🏢 *Empresa:* ${leadRoteado.empresa || 'Não Informada'}
 📞 *WhatsApp:* ${leadRoteado.telefone}
@@ -77,10 +74,9 @@ export async function POST(request: Request) {
 📢 *Operação:* ${leadRoteado.canal}
 📍 *Origem/IP:* ${leadRoteado.origem || 'Site'}
 
-💬 *Mensagem do Cliente:* "${leadRoteado.mensagem || 'Sem observações.'}"
------------------------------------------
-⏱️ _Acesse o painel local para gerenciar._
-`;
+💬 *Mensagem do Cliente:* ${leadRoteado.mensagem || 'Sem observações.'}
+
+⏱ _Acesse o painel local para gerenciar._`;
 
     // Dispara para a API do Telegram em segundo plano
     fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
