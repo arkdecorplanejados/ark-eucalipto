@@ -1,4 +1,6 @@
 import admin from 'firebase-admin';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 if (!admin.apps.length) {
   try {
@@ -15,7 +17,11 @@ if (!admin.apps.length) {
     } 
     // 2. Se não achar as variáveis, tenta ler o arquivo local (Modo Desenvolvimento - Sua Máquina)
     else {
-      const serviceAccount = require('../../firebase-keys.json');
+      // Usa readFileSync para ler o JSON de forma compatível com ES Modules (import/export)
+      const serviceAccount = JSON.parse(
+        readFileSync(join(process.cwd(), 'firebase-keys.json'), 'utf8')
+      );
+
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
