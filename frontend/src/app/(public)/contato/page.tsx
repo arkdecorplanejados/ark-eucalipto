@@ -7,7 +7,8 @@ export default function ContatoPage() {
   const [nome, setNome] = useState('');
   const [empresa, setEmpresa] = useState('');
   const [telefone, setTelephone] = useState('');
-  const [categoria, setCategoria] = useState('tratado'); // Inicializado na categoria principal
+  const [email, setEmail] = useState(''); // 🟢 NOVO: Estado para capturar o e-mail
+  const [categoria, setCategoria] = useState('tratado'); 
   const [mensagem, setMensagem] = useState('');
   
   const [enviando, setEnviando] = useState(false);
@@ -15,39 +16,30 @@ export default function ContatoPage() {
   const [rastreio, setRastreio] = useState({ origem: 'Tráfego Orgânico (Busca Google)', utmSource: '' });
 
   // Valida se o número tem um formato de celular brasileiro real válido (com DDD + 9 dígitos)
-const validarWhatsAppReal = (numero: string): boolean => {
-  // Remove tudo o que não for número
-  const apenasNumeros = numero.replace(/\D/g, '');
+  const validarWhatsAppReal = (numero: string): boolean => {
+    const apenasNumeros = numero.replace(/\D/g, '');
+    if (apenasNumeros.length !== 11) return false;
+    if (apenasNumeros[2] !== '9') return false;
 
-  // Primeira trava: Precisa ter exatamente 11 dígitos
-  if (apenasNumeros.length !== 11) return false;
+    const apenasO_Telefone = apenasNumeros.substring(2);
+    const sequenciasFalsasDeTelefone = [
+      '000000000', '111111111', '222222222', '333333333', 
+      '444444444', '555555555', '666666666', '777777777', 
+      '888888888', '999999999'
+    ];
+    
+    if (sequenciasFalsasDeTelefone.includes(apenasO_Telefone)) return false;
+    return true;
+  };
 
-  // Segunda trava: O primeiro dígito após o DDD (posição 2) tem que ser o 9
-  if (apenasNumeros[2] !== '9') return false;
-
-  // 🛡️ NOVA TRAVA EXTRA: Pega apenas os 9 dígitos do telefone (ignorando o DDD)
-  const apenasO_Telefone = apenasNumeros.substring(2);
-  
-  // Se o telefone isolado for uma sequência de números repetidos (ex: 999999999, 777777777), ela barra!
-  const sequenciasFalsasDeTelefone = [
-    '000000000', '111111111', '222222222', '333333333', 
-    '444444444', '555555555', '666666666', '777777777', 
-    '888888888', '999999999'
-  ];
-  
-  if (sequenciasFalsasDeTelefone.includes(apenasO_Telefone)) return false;
-
-  return true;
-};
-
-// Aplica a máscara (77) 99999-0000 automaticamente enquanto o usuário digita
-const aplicarMascaraTelefone = (valor: string) => {
-  return valor
-    .replace(/\D/g, '') // Remove tudo o que não é número
-    .replace(/^(\d{2})(\d)/g, '($1) $2') // Coloca parênteses no DDD
-    .replace(/(\d{5})(\d)/, '$1-$2') // Coloca o hífen no meio do celular
-    .substring(0, 15); // Limita o tamanho máximo do campo
-};
+  // Aplica a máscara (77) 99999-0000 automaticamente enquanto o usuário digita
+  const aplicarMascaraTelefone = (valor: string) => {
+    return valor
+      .replace(/\D/g, '') 
+      .replace(/^(\d{2})(\d)/g, '($1) $2') 
+      .replace(/(\d{5})(\d)/, '$1-$2') 
+      .substring(0, 15); 
+  };
 
   // 📡 Captura de Geolocalização por IP e parâmetros de Marketing
   useEffect(() => {
@@ -90,7 +82,6 @@ const aplicarMascaraTelefone = (valor: string) => {
   const handleEnviarLead = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 🛑 TRAVA DE SEGURANÇA: Bloqueia nomes vazios e números falsos/inválidos
     if (!nome.trim()) return alert('Por favor, preencha seu nome.');
     
     if (!validarWhatsAppReal(telefone)) {
@@ -103,6 +94,7 @@ const aplicarMascaraTelefone = (valor: string) => {
       nome,
       empresa: empresa || 'Pessoa Física',
       telefone,
+      email: email.trim() || null, // 🟢 NOVO: Integrado no payload enviado para o Back-end
       categoria,
       origem: rastreio.origem,
       utm_source: rastreio.utmSource,
@@ -116,7 +108,6 @@ const aplicarMascaraTelefone = (valor: string) => {
     };
 
     try {
-      // 🔄 Enviando para a rota interna do Next.js para disparar o Push do Telegram
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -124,24 +115,21 @@ const aplicarMascaraTelefone = (valor: string) => {
       });
 
       if (res.ok) {
-        // 💾 PERSISTÊNCIA LOCAL: Injeta o lead no localStorage para o Dashboard ler em tempo real
         if (typeof window !== 'undefined') {
           const leadsAtuaisRaw = localStorage.getItem('ark_eucalipto_leads');
           let listaLeads = leadsAtuaisRaw ? JSON.parse(leadsAtuaisRaw) : [];
           
-          // Adiciona um ID único para controle de renderização da tabela
           const leadComId = {
             id: `l_local_${Date.now()}`,
             ...novoLead
           };
 
-          // Coloca o lead novo no topo da lista
           listaLeads = [leadComId, ...listaLeads];
           localStorage.setItem('ark_eucalipto_leads', JSON.stringify(listaLeads));
         }
 
         setSucesso(true);
-        setNome(''); setEmpresa(''); setTelephone(''); setMensagem('');
+        setNome(''); setEmpresa(''); setTelephone(''); setEmail(''); setMensagem('');
       } else {
         throw new Error();
       }
@@ -156,10 +144,9 @@ const aplicarMascaraTelefone = (valor: string) => {
   return (
     <div className="min-h-screen bg-[radial-gradient(#e4e4e7_1px,transparent_1px)] [background-size:16px_16px] bg-zinc-50/60 flex flex-col justify-center items-center p-4 md:p-8">
       
-      {/* Container Central */}
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 bg-white rounded-3xl border border-zinc-200/80 shadow-2xl shadow-zinc-200/60 overflow-hidden animate-fadeIn">
         
-        {/* Painel Lateral Estético */}
+        {/* Painel Lateral */}
         <div className="lg:col-span-4 bg-zinc-900 p-8 flex flex-col justify-between text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px]" />
           
@@ -232,10 +219,11 @@ const aplicarMascaraTelefone = (valor: string) => {
                 </div>
               </div>
 
+              {/* 🟢 SEÇÃO ATUALIZADA: Bloco de WhatsApp e E-mail lado a lado */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wide">WhatsApp / Telefone *</label>
-                 <input 
+                  <input 
                     type="tel" 
                     required 
                     placeholder="(77) 99999-0000" 
@@ -246,17 +234,28 @@ const aplicarMascaraTelefone = (valor: string) => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wide">Material de Interesse</label>
-                  <select 
-                    value={categoria} onChange={e => setCategoria(e.target.value)} 
-                    className="w-full p-3 bg-zinc-50/60 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-700 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all shadow-sm cursor-pointer"
-                  >
-                    <option value="tratado">🛡️ Eucalipto Tratado (Autoclave / Mourões Premium)</option>
-                    <option value="rural">🌲 Linha Rural (Mourões / Estacas In Natura)</option>
-                    <option value="innatura">🪵 In Natura (Escoras de Laje / Vigas)</option>
-                    <option value="lenha">🔥 Biomassa / Lenha Industrial</option>
-                  </select>
+                  <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wide">E-mail (Opcional)</label>
+                  <input 
+                    type="email" 
+                    placeholder="exemplo@email.com" 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                    className="w-full p-3 bg-zinc-50/60 border border-zinc-200 rounded-xl text-xs font-medium focus:outline-none focus:border-zinc-400 focus:bg-white transition-all shadow-sm" 
+                  />
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wide">Material de Interesse</label>
+                <select 
+                  value={categoria} onChange={e => setCategoria(e.target.value)} 
+                  className="w-full p-3 bg-zinc-50/60 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-700 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all shadow-sm cursor-pointer"
+                >
+                  <option value="tratado">🛡️ Eucalipto Tratado (Autoclave / Mourões Premium)</option>
+                  <option value="rural">🌲 Linha Rural (Mourões / Estacas In Natura)</option>
+                  <option value="innatura">🪵 In Natura (Escoras de Laje / Vigas)</option>
+                  <option value="lenha">🔥 Biomassa / Lenha Industrial</option>
+                </select>
               </div>
 
               <div className="space-y-1.5">
