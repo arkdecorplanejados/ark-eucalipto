@@ -70,12 +70,36 @@ router.post('/newsletter', async (req: Request, res: Response, next: NextFunctio
   }
 });
 
-// 2. Rota para Criar um novo Lead (Com trava Anti-Duplicidade para o Robô de IA)
+// 2. Rota para Criar um novo Lead (Com trava Anti-Duplicidade Blindada para o Robô de IA)
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // 🛡️ Mapeamento preventivo caso a IA mude o nome da chave da propriedade no payload
+    const rawCompanyName = req.body.companyName || req.body.nome || req.body.title;
+    const rawSegment = req.body.segment || req.body.categoria || req.body.segmento;
+
+    if (!rawCompanyName || !rawSegment) {
+       res.status(400).json({ error: 'Nome da empresa e segmento são obrigatórios.' });
+       return;
+    }
+
+    const nomeTratado = rawCompanyName.trim();
+    const segmentoTratado = rawSegment.trim().toUpperCase();
+    const leadsRef = db.collection('leads');
+
+    // 🔒 TRAVA ANTIDUPLICIDADE BLINDADA: Busca exata pelo nome limpo
+    const querySnapshot = await leadsRef.where('companyName', '==', nomeTratado).get();
+    
+    if (!querySnapshot.empty) {
+      // Se já existir qualquer registro com esse mesmo nome, barra o robô imediatamente
+      res.status(200).json({ 
+        message: `A empresa "${nomeTratado}" já consta no barramento estratégico da Ark. Ignorando duplicata.`,
+        id: querySnapshot.docs[0].id,
+        ...querySnapshot.docs[0].data()
+      });
+      return;
+    }
+
     const { 
-      companyName, 
-      segment, 
       contactName, 
       phone, 
       email, 
@@ -84,28 +108,9 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       aiJustification 
     } = req.body;
 
-    if (!companyName || !segment) {
-       res.status(400).json({ error: 'Nome da empresa e segmento são obrigatórios.' });
-       return;
-    }
-
-    const nomeTratado = companyName.trim();
-    const leadsRef = db.collection('leads');
-
-    // 🛡️ TRAVA DE SEGURANÇA: Verifica se a empresa já foi cadastrada na base
-    const empresaExiste = await leadsRef.where('companyName', '==', nomeTratado).get();
-    if (!empresaExiste.empty) {
-      res.status(200).json({ 
-        message: `A empresa "${nomeTratado}" já consta no barramento estratégico da Ark. Ignorando duplicata.`,
-        id: empresaExiste.docs[0].id,
-        ...empresaExiste.docs[0].data()
-      });
-      return;
-    }
-
     const newLead = {
       companyName: nomeTratado,
-      segment, // FAZENDA, INDUSTRIA_CERCA, CONSTRUTORA, etc.
+      segment: segmentoTratado, // FAZENDA, INDUSTRIA_CERCA, etc.
       contactName: contactName || null,
       phone: phone || null,
       email: email || null,
@@ -113,11 +118,11 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       status: 'NEW', 
       aiScore: aiScore || 0,
       aiJustification: aiJustification || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: admin.firestore.FieldValue.serverTimestamp(), // ⚙️ ServerTimestamp nativo e seguro
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
     };
 
-    const docRef = await db.collection('leads').add(newLead);
+    const docRef = await leadsRef.add(newLead);
 
     res.status(201).json({
       id: docRef.id,
