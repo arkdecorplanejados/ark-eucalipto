@@ -27,11 +27,10 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
-  // Configuração para quando linkarem seu site no WhatsApp ou Instagram
   openGraph: {
     title: 'Ark Eucalipto | Madeiras Brutas e Estruturais',
     description: 'Faturamento direto e soluções sustentáveis em eucalipto in natura e mourões em Vitória da Conquista - BA.',
-    url: 'https://www.arkeucalipto.com.br', // Substitua pelo seu domínio quando publicar
+    url: 'https://www.arkeucalipto.com.br',
     siteName: 'Ark Eucalipto',
     locale: 'pt_BR',
     type: 'website',
@@ -41,6 +40,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
+      <head>
+        {/* 🟢 PRÉ-CONEXÃO COM SERVIÇOS CRÍTICOS: Faz o site carregar muito mais rápido no celular */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://ark-eucalipto-backend.onrender.com" />
+      </head>
       <body className="antialiased selection:bg-emerald-800 selection:text-white">
         {/* O Next.js injetará os sub-layouts e páginas aqui dentro */}
         {children}

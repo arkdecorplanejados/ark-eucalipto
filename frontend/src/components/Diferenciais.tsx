@@ -55,8 +55,8 @@ export default function Diferenciais({ diferenciais = [] }: DiferenciaisProps) {
                 <h3 className="text-2xl font-serif font-black text-zinc-900 tracking-tight leading-tight group-hover:text-emerald-950 transition-colors">
                   {item.titulo}
                 </h3>
-                {/* Subtítulo / Tag Verde Dinâmica */}
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 block">
+                {/* 🟢 CORREÇÃO DE ACESSIBILIDADE: Trocado de text-emerald-600 para text-emerald-800 para atingir a taxa de contraste mínima no PageSpeed */}
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">
                   {item.subtitulo}
                 </span>
               </div>
