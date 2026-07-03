@@ -22,29 +22,34 @@ export default function ProdutosPublicoPage() {
   const [produtos, setProdutos] = useState<ProdutoVitrine[]>([]);
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('TODOS');
   
-  // 🌲 Configurações de fallback inicial para o Parallax do Catálogo
   const [configBanner, setConfigBanner] = useState<ParallaxConfig>({
     titulo: "NOSSO CATÁLOGO",
     subtitulo: "Confira nossa linha completa de eucalipto estrutural in natura, materiais tratados e biomassa de alta performance.",
     imagemUrl: "https://images.unsplash.com/photo-1601597111158-2fceff292cdc?w=1600&auto=format&fit=crop&q=80"
   });
 
-  // 🔄 1. CONEXÃO EM TEMPO REAL COM OS DADOS DINÂMICOS DO CMS
+  // 🌳 Função para otimizar e comprimir assets vindos do Cloudinary
+  const otimizarImagemUrl = (url: string) => {
+    if (!url) return '';
+    if (url.includes('cloudinary.com') && !url.includes('f_auto')) {
+      return url.replace('/image/upload/', '/image/upload/f_auto,q_auto/');
+    }
+    return url;
+  };
+
   useEffect(() => {
-    // Carrega a lista de produtos cadastrados no pátio
     const dadosLocais = localStorage.getItem('ark_eucalipto_produtos');
     if (dadosLocais !== null) {
       setProdutos(JSON.parse(dadosLocais));
     } else {
       const dadosIniciais: ProdutoVitrine[] = [
         { id: 'p1', titulo: 'Escora de Eucalipto In Natura 3m', categoria: 'INNATURA', descricao: 'Material selecionado de alta resistência, ideal para escoramento de lajes e estruturas de concreto na construção civil.', imagemUrl: '' },
-        { id: 'p2', titulo: 'Mourão de Eucalipto Autoclavado 2,20m', categoria: 'TRATADO', descricao: 'Madeira tratada em autoclave com CCA, garantindo imunidade contra cupins, brocas e apodrecimento por umidade.', imagemUrl: '' },
+        { id: 'p2', titulo: 'Mourão de Eucalipto Autoclavado 2,20m', categoria: 'TRATADO', descricao: 'Madeira tratada in autoclave com CCA, garantindo imunidade contra cupins, brocas e apodrecimento por umidade.', imagemUrl: '' },
         { id: 'p3', titulo: 'Poste de Eucalipto Duplo B Rural', categoria: 'RURAL', descricao: 'Postes robustos para eletrificação rural, estruturação de galpões e cercamentos de grande porte.', imagemUrl: '' },
       ];
       setProdutos(dadosIniciais);
     }
 
-    // Carrega as configurações globais do banner parallax do topo
     const dadosGlobais = localStorage.getItem('ark_eucalipto_config');
     if (dadosGlobais) {
       const parsed = JSON.parse(dadosGlobais);
@@ -60,13 +65,11 @@ export default function ProdutosPublicoPage() {
     }
   }, []);
 
-  // 📞 DIRECIONAMENTO DO WHATSAPP COM TEXTO DINÂMICO
   const handleSolicitarCotacao = (nomeProduto: string) => {
     const mensagem = encodeURIComponent(`Olá! Gostaria de solicitar um orçamento e checar a disponibilidade do lote para o produto: ${nomeProduto}.`);
-    window.open(`https://wa.me/5577999999999?text=${mensagem}`, '_blank'); // 👈 Substitua pelo seu número institucional
+    window.open(`https://wa.me/5577992365475?text=${mensagem}`, '_blank'); 
   };
 
-  // 🎛️ FILTRAGEM DINÂMICA DE BOTÕES
   const produtosFiltrados = produtos.filter(p => {
     if (categoriaAtiva === 'TODOS') return true;
     return p.categoria === categoriaAtiva;
@@ -75,11 +78,20 @@ export default function ProdutosPublicoPage() {
   return (
     <div className="bg-white min-h-screen text-zinc-800 antialiased selection:bg-emerald-50 selection:text-emerald-800">
       
-      {/* 🌲 BANNER PARALLAX PREMIUM DINÂMICO NO TOPO */}
+      {/* 🌲 BANNER PARALLAX PREMIUM OTIMIZADO */}
       <div 
         className="relative h-[280px] md:h-[340px] bg-fixed bg-cover bg-center flex items-center justify-center overflow-hidden transition-all duration-500"
-        style={{ backgroundImage: `url('${configBanner.imagemUrl}')` }}
+        style={{ backgroundImage: `url('${otimizarImagemUrl(configBanner.imagemUrl)}')` }}
       >
+        {/* ⚡ Acelera o LCP forçando o pre-load prioritário no celular */}
+        <img 
+          src={otimizarImagemUrl(configBanner.imagemUrl)} 
+          alt="" 
+          className="hidden" 
+          // @ts-ignore
+          fetchpriority="high" 
+        />
+
         <div className="absolute inset-0 bg-black/55 backdrop-blur-[0.5px]" />
         
         <div className="absolute top-6 left-4 md:left-8 z-10">
@@ -101,7 +113,7 @@ export default function ProdutosPublicoPage() {
         </div>
       </div>
 
-      {/* 🎚️ NAVEGAÇÃO / FILTROS ELEGANTES (Estilo E-commerce Premium) */}
+      {/* 🎚️ NAVEGAÇÃO / FILTROS ELEGANTES */}
       <div className="max-w-7xl mx-auto px-4 pt-8 pb-4">
         <div className="flex gap-2 overflow-x-auto pb-2 pt-2 scrollbar-none border-b border-zinc-100">
           {[
@@ -113,6 +125,7 @@ export default function ProdutosPublicoPage() {
           ].map(cat => (
             <button
               key={cat.id}
+              type="button"
               onClick={() => setCategoriaAtiva(cat.id)}
               className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all border ${
                 categoriaAtiva === cat.id
@@ -126,7 +139,7 @@ export default function ProdutosPublicoPage() {
         </div>
       </div>
 
-      {/* 🎨 SEÇÃO MÃE: GRID DE CARDS PREMIUM PÚBLICO */}
+      {/* 🎨 GRID DE CARDS PREMIUM PÚBLICO */}
       <div className="max-w-7xl mx-auto px-4 pb-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {produtosFiltrados.map((prod) => (
@@ -134,12 +147,14 @@ export default function ProdutosPublicoPage() {
               key={prod.id} 
               className="bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
             >
-              {/* 🖼️ Espaço para Foto Carregada ou Placeholder Elegante */}
+              {/* 🖼️ Espaço para Foto com Compressão Ativa */}
               <div className="h-52 w-full bg-zinc-50 overflow-hidden relative border-b border-zinc-100 flex items-center justify-center text-zinc-300 select-none">
                 {prod.imagemUrl ? (
                   <img 
-                    src={prod.imagemUrl} 
+                    src={otimizarImagemUrl(prod.imagemUrl)} 
                     alt={prod.titulo}
+                    width={400} // Evita saltos de layout definindo dimensões básicas
+                    height={208}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
@@ -153,7 +168,6 @@ export default function ProdutosPublicoPage() {
               {/* Corpo de Informações do Card */}
               <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div className="space-y-2.5">
-                  {/* Categorização Visual com Cores Estilizadas */}
                   <div>
                     <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded border inline-flex items-center gap-1 ${
                       prod.categoria === 'INNATURA' ? 'bg-teal-50 text-teal-700 border-teal-100' :
@@ -168,22 +182,21 @@ export default function ProdutosPublicoPage() {
                     </span>
                   </div>
 
-                  {/* Título Serifado Premium */}
                   <h3 className="text-base font-serif font-black text-zinc-900 leading-tight group-hover:text-emerald-800 transition-colors">
                     {prod.titulo}
                   </h3>
                   
-                  {/* Descrição Comercial fluída */}
                   <p className="text-xs text-zinc-500 font-normal leading-relaxed">
                     {prod.descricao}
                   </p>
                 </div>
 
-                {/* 📞 BOTÃO COM ACIONAMENTO DE LINK DO WHATSAPP COM TEXTO DINÂMICO */}
+                {/* 📞 BOTÃO COM ARIA-LABEL ÚNICO E DINÂMICO */}
                 <div className="pt-2">
                   <button 
                     type="button" 
                     onClick={() => handleSolicitarCotacao(prod.titulo)}
+                    aria-label={`Solicitar cotação via WhatsApp para o produto ${prod.titulo}`} // 🟢 Remove a duplicidade de links para o Google
                     className="w-full bg-zinc-900 text-white hover:bg-emerald-700 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm"
                   >
                     <Phone className="w-3.5 h-3.5" /> Solicitar Cotação
@@ -193,7 +206,7 @@ export default function ProdutosPublicoPage() {
             </div>
           ))}
 
-          {/* Estado Vazio de Busca / Filtro */}
+          {/* Estado Vazio */}
           {produtosFiltrados.length === 0 && (
             <div className="col-span-full text-center py-16 text-zinc-400 text-xs font-medium border border-dashed rounded-3xl bg-zinc-50/50">
               Nenhum material disponível nesta categoria no momento. Entre em contato para encomendas.

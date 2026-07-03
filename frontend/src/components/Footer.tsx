@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Mail, Phone, MapPin, Trees, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
-// ⚙️ INTEGRAÇÃO INTERFACE: Mapeia os dados que virão da API do CMS
 interface FooterProps {
   dados?: {
     descricaoSite?: string;
@@ -17,17 +16,14 @@ interface FooterProps {
 export default function Footer({ dados }: FooterProps) {
   const anoAtual = new Date().getFullYear();
   
-  // 🟢 ESTADOS DA NEWSLETTER INTEGRADA
   const [emailNews, setEmailNews] = useState('');
   const [statusNews, setStatusNews] = useState<'ocioso' | 'carregando' | 'sucesso'>('ocioso');
 
-  // 🛡️ TRATAMENTO DE FALLBACKS: Garante o funcionamento caso o banco esteja carregando
   const descricao = dados?.descricaoSite || "Soluções sustentáveis em madeira bruta, escoramentos estruturais e biomassa para toda a Bahia. Faturamento direto do produtor com garantia de procedência legal.";
-  const whatsappPuro = dados?.whatsapp || "73982365475";
+  const whatsappPuro = dados?.whatsapp || "77992365475";
   const emailValido = dados?.email || "contato@arkdecor.com.br";
   const enderecoValido = dados?.endereco || "Vitória da Conquista - BA";
 
-  // 📞 MÁSCARA DINÂMICA: Formata o número vindo limpo do banco para (XX) XXXXX-XXXX
   const formatarWhatsapp = (num: string) => {
     const limpo = num.replace(/\D/g, '');
     if (limpo.length === 11) {
@@ -36,7 +32,6 @@ export default function Footer({ dados }: FooterProps) {
     return num;
   };
 
-  // 📡 ENVIO DOS DADOS DA NEWSLETTER PARA A API
   const handleInscricaoNews = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusNews('carregando');
@@ -44,7 +39,6 @@ export default function Footer({ dados }: FooterProps) {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       
-      // 🟢 CORRIGIDO: Aponta exatamente para o barramento de leads unificado
       const resposta = await fetch(`${apiUrl}/api/leads/newsletter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,7 +55,6 @@ export default function Footer({ dados }: FooterProps) {
       setTimeout(() => setStatusNews('ocioso'), 4000);
     } catch (err) {
       console.error('❌ Falha real no envio da newsletter:', err);
-      // Mantém o estado ocioso em caso de falha real para diagnóstico visual preciso
       setStatusNews('ocioso');
       alert('O servidor barrou o cadastro. Verifique os logs do console do navegador.');
     }
@@ -70,7 +63,7 @@ export default function Footer({ dados }: FooterProps) {
   return (
     <footer className="bg-zinc-950 text-zinc-400 border-t border-zinc-900 antialiased font-sans">
       
-      {/* 🟢 BLOCO PREMIUM DE NEWSLETTER INTEGRADO DIRETO NO TOPO DO FOOTER */}
+      {/* 📬 BLOCO PREMIUM DE NEWSLETTER INTEGRADO */}
       <div className="border-b border-zinc-900/60 bg-zinc-950/40">
         <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
           
@@ -88,7 +81,12 @@ export default function Footer({ dados }: FooterProps) {
 
           <div className="md:col-span-7 space-y-2">
             <form onSubmit={handleInscricaoNews} className="flex flex-col sm:flex-row gap-2">
+              {/* 🟢 Solução de Acessibilidade: Label explicitamente associado ao Input */}
+              <label htmlFor="email-newsletter" className="sr-only">
+                Seu melhor e-mail corporativo ou pessoal
+              </label>
               <input
+                id="email-newsletter"
                 type="email"
                 required
                 value={emailNews}
@@ -118,7 +116,7 @@ export default function Footer({ dados }: FooterProps) {
       <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           
-          {/* COLUNA 1: LOGO E DESCRIÇÃO DINÂMICA */}
+          {/* COLUNA 1: LOGO E DESCRIÇÃO */}
           <div className="md:col-span-4 space-y-4">
             <div className="flex items-center gap-2 text-white font-serif font-black tracking-tight text-lg">
               <div className="w-8 h-8 bg-emerald-950 border border-emerald-800 rounded-lg flex items-center justify-center text-emerald-400 shadow-sm">
@@ -139,7 +137,7 @@ export default function Footer({ dados }: FooterProps) {
             <ul className="space-y-2 text-xs font-medium">
               {[
                 { label: 'Início', href: '/' },
-                { label: 'Produtos', href: '/produtos' },
+                { label: 'Produtos', href: '#catalogo' },
                 { label: 'Diferenciais', href: '/diferenciais' },
                 { label: 'Dúvidas (FAQ)', href: '/faq' }
               ].map((link, idx) => (
@@ -156,7 +154,7 @@ export default function Footer({ dados }: FooterProps) {
             </ul>
           </div>
 
-          {/* COLUNA 3: CONTATO COMERCIAL DINÂMICO */}
+          {/* COLUNA 3: CONTATO COMERCIAL */}
           <div className="md:col-span-3 space-y-3">
             <h4 className="text-[10px] font-black uppercase text-zinc-200 tracking-widest border-b border-zinc-900 pb-1.5">
               Contato Comercial
@@ -167,6 +165,7 @@ export default function Footer({ dados }: FooterProps) {
                   href={`https://wa.me/55${whatsappPuro.replace(/\D/g, '')}`} 
                   target="_blank" 
                   rel="noopener noreferrer" 
+                  aria-label={`Falar com suporte Ark Eucalipto pelo WhatsApp no número ${formatarWhatsapp(whatsappPuro)}`}
                   className="flex items-start gap-2 hover:text-white transition-colors group"
                 >
                   <Phone className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
@@ -179,6 +178,7 @@ export default function Footer({ dados }: FooterProps) {
               <li>
                 <a 
                   href={`mailto:${emailValido}`} 
+                  aria-label={`Enviar e-mail corporativo para ${emailValido}`}
                   className="flex items-start gap-2 hover:text-white transition-colors group"
                 >
                   <Mail className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
@@ -191,7 +191,7 @@ export default function Footer({ dados }: FooterProps) {
             </ul>
           </div>
 
-          {/* COLUNA 4: ONDE ESTAMOS DINÂMICO */}
+          {/* COLUNA 4: LOCALIZAÇÃO */}
           <div className="md:col-span-3 space-y-3">
             <h4 className="text-[10px] font-black uppercase text-zinc-200 tracking-widest border-b border-zinc-900 pb-1.5">
               Onde Estamos
@@ -210,7 +210,7 @@ export default function Footer({ dados }: FooterProps) {
         </div>
       </div>
 
-      {/* 📑 ASSINATURA INFERIOR E DIREITOS */}
+      {/* 📑 DIREITOS AUTORAIS */}
       <div className="border-t border-zinc-900 bg-black/40 py-5 text-[10px] font-medium text-zinc-600 tracking-wide">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div className="flex items-center gap-1.5">

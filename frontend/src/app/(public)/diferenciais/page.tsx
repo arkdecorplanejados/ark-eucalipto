@@ -8,19 +8,26 @@ interface ParallaxConfig {
   titulo: string;
   subtitulo: string;
   imagemUrl: string;
-  whatsappCTA?: string; // 🟢 ADICIONADO: Propriedade mapeada do banco
+  whatsappCTA?: string; 
 }
 
 export default function DiferenciaisPage() {
-  // 🌲 Estado inicial com fallbacks seguros caso o banco ainda não tenha sido populado
   const [configParallax, setConfigParallax] = useState<ParallaxConfig>({
     titulo: "NOSSOS DIFERENCIAIS",
     subtitulo: "A robustez e a tecnologia por trás da nossa madeira tratada",
     imagemUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1600&auto=format&fit=crop&q=80",
-    whatsappCTA: "" // Começa vazio para herdar o padrão
+    whatsappCTA: "" 
   });
 
-  // 🔄 CONEXÃO EM TEMPO REAL: Puxa o que você editou lá no painel admin
+  // 🔄 Otimização dinâmica para links do Cloudinary vindos do CMS
+  const otimizarImagemUrl = (url: string) => {
+    if (!url) return '';
+    if (url.includes('cloudinary.com') && !url.includes('f_auto')) {
+      return url.replace('/image/upload/', '/image/upload/f_auto,q_auto/');
+    }
+    return url;
+  };
+
   useEffect(() => {
     const dadosGlobais = localStorage.getItem('ark_eucalipto_config');
     
@@ -33,24 +40,21 @@ export default function DiferenciaisPage() {
           titulo: logisticaCms.titulo?.toUpperCase() || "NOSSOS DIFERENCIAIS",
           subtitulo: logisticaCms.subtitulo || "A robustez e a tecnologia por trás da nossa madeira tratada",
           imagemUrl: logisticaCms.imagemUrl || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1600&auto=format&fit=crop&q=80",
-          whatsappCTA: logisticaCms.whatsappCTA || "" // 🟢 CAPTURA O CAMPO DINÂMICO DO ADMIN
+          whatsappCTA: logisticaCms.whatsappCTA || "" 
         });
       }
     }
   }, []);
   
-  // 📡 DIRECIONAMENTO INTELIGENTE DO BOTÃO DE COBRANÇA/ORÇAMENTO
   const handleSolicitarOrcamento = () => {
     const mensagem = encodeURIComponent("Olá! Visitei a página de diferenciais da Ark Eucalipto e gostaria de alinhar um projeto com madeira tratada.");
     const ctaSalvo = configParallax.whatsappCTA?.trim();
 
-    // Se não tiver nada salvo, usa o número padrão de contingência
     if (!ctaSalvo) {
       window.open(`https://wa.me/5577992365475?text=${mensagem}`, '_blank');
       return;
     }
 
-    // Se for um link completo (começa com http), usa direto. Se for só o número, monta a URL nativa
     const urlFinal = ctaSalvo.startsWith('http')
       ? `${ctaSalvo}${ctaSalvo.includes('?') ? '&' : '?'}text=${mensagem}`
       : `https://wa.me/${ctaSalvo.replace(/\D/g, '')}?text=${mensagem}`;
@@ -84,11 +88,20 @@ export default function DiferenciaisPage() {
   return (
     <div className="bg-white min-h-screen text-zinc-800 antialiased selection:bg-emerald-50 selection:text-emerald-800">
       
-      {/* 🌲 BANNER PARALLAX TOTALMENTE DINÂMICO */}
+      {/* 🌲 BANNER PARALLAX OTIMIZADO COM SUPORTE A IMAGENS LEVES E AGILIDADE DE RENDERIZAÇÃO */}
       <div 
         className="relative h-[280px] md:h-[340px] bg-fixed bg-cover bg-center flex items-center justify-center overflow-hidden transition-all duration-500"
-        style={{ backgroundImage: `url('${configParallax.imagemUrl}')` }}
+        style={{ backgroundImage: `url('${otimizarImagemUrl(configParallax.imagemUrl)}')` }}
       >
+        {/* Elemento oculto injetado para forçar o navegador a dar prioridade máxima no download desse asset */}
+        <img 
+          src={otimizarImagemUrl(configParallax.imagemUrl)} 
+          alt="" 
+          className="hidden" 
+          // @ts-ignore
+          fetchpriority="high" 
+        />
+        
         <div className="absolute inset-0 bg-black/50 backdrop-blur-[0.5px]" />
         
         <div className="absolute top-6 left-4 md:left-8 z-10">
@@ -133,7 +146,7 @@ export default function DiferenciaisPage() {
           ))}
         </div>
 
-        {/* 🟢 CALL TO ACTION INTEGRADO AO NOVO LINK DINÂMICO */}
+        {/* 🟢 CALL TO ACTION COM ARIA-LABEL ATUALIZADO */}
         <div className="mt-12 bg-zinc-900 text-white rounded-2xl p-6 md:p-8 border border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md">
           <div className="space-y-1 text-center md:text-left">
             <h4 className="text-lg font-serif font-black text-emerald-400">Pronto para construir com segurança?</h4>
@@ -144,6 +157,7 @@ export default function DiferenciaisPage() {
           <button
             type="button"
             onClick={handleSolicitarOrcamento}
+            aria-label="Iniciar cotação de madeira tratada via WhatsApp" // 🟢 Acessibilidade garantida
             className="w-full md:w-auto whitespace-nowrap bg-emerald-700 hover:bg-emerald-800 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm"
           >
             <Phone className="w-4 h-4" /> Alinhar Carga

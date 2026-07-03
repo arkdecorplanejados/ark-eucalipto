@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-// 🌳 Tipagem para manter o projeto limpo e evitar o uso de 'any'
 interface Produto {
   id: string;
   nome: string;
@@ -21,7 +20,6 @@ export default function RodoviasPage() {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    // 🚀 Otimização: Usa a variável do .env ou assume o localhost como fallback de desenvolvimento
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     
     fetch(`${apiUrl}/api/site/config`)
@@ -38,49 +36,52 @@ export default function RodoviasPage() {
 
   if (carregando) {
     return (
-      <div className="p-10 text-center font-bold text-emerald-800 bg-stone-50 min-h-screen flex items-center justify-center">
+      <div className="p-10 text-center font-black text-xs uppercase tracking-widest text-emerald-800 bg-stone-50 min-h-screen flex items-center justify-center animate-pulse">
         Carregando Soluções Industriais...
       </div>
     );
   }
 
-  // 🚀 FILTRO SELETIVO: Filtra apenas produtos voltados para engenharia pesada e rodovias
   const produtosInfra = (config?.produtosVitrine || []).filter(
     (p) => p.categoria === 'infraestrutura' && p.visivel
   );
 
-  const whatsappLimpo = config?.whatsapp ? config.whatsapp.replace(/\D/g, '') : '77999999999';
+  // Fallback configurado diretamente para a conta corporativa da Ark Eucalipto
+  const whatsappLimpo = config?.whatsapp ? config.whatsapp.replace(/\D/g, '') : '5577992365475';
 
   return (
-    <div className="min-h-screen bg-stone-50 text-zinc-800 py-16 px-6">
+    <div className="min-h-screen bg-stone-50 text-zinc-800 py-16 px-6 antialiased selection:bg-emerald-50 selection:text-emerald-900">
       <div className="max-w-5xl mx-auto space-y-12">
         
         {/* Header de Autoridade Corporativa */}
         <div className="space-y-4 text-center md:text-left">
-          <Link href="/" className="text-xs font-bold text-emerald-800 hover:underline inline-flex items-center gap-1">
+          <Link 
+            href="/" 
+            className="text-xs font-black uppercase tracking-wider text-emerald-800 hover:text-emerald-900 inline-flex items-center gap-1 transition-colors"
+          >
             ← Voltar para o Site Comercial
           </Link>
           <h1 className="text-4xl md:text-5xl font-serif font-black text-zinc-950 tracking-tight leading-tight">
             Atendimento a Construtoras e Obras Viárias
           </h1>
-          <p className="text-zinc-600 max-w-3xl text-sm md:text-base leading-relaxed">
-            Fornecemos estacas de contenção, escoramentos pesados, pontaletes e pilares de eucalipto in natura de alta densidade para engenharia civil. Atendendo Vitória da Conquista e eixos logísticos da Bahia com faturamento direto do produtor, emissão de Nota Fiscal e total conformidade ambiental através do Documento de Origem Florestal (DOF).
+          <p className="text-zinc-600 max-w-3xl text-xs md:text-sm font-normal leading-relaxed">
+            Fornecemos estacas de contenção, escoramentos pesados, pontaletes e pilares de eucalipto in natura de alta densidade para engenharia civil. Atendendo eixos logísticos da Bahia com faturamento direto do produtor, emissão de Nota Fiscal e total conformidade ambiental através do Documento de Origem Florestal (DOF).
           </p>
         </div>
 
         {/* Diferenciais B2B */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white p-8 rounded-3xl border border-stone-200/60 shadow-sm">
           <div className="space-y-1">
-            <h4 className="font-bold text-zinc-900 text-sm flex items-center gap-2">🚛 Cargas Fechadas</h4>
-            <p className="text-xs text-zinc-500 leading-relaxed">Logística pesada e pátio centralizado para entrega contínua em frentes de obra rodoviárias.</p>
+            <h4 className="font-black text-zinc-900 text-xs uppercase tracking-wider flex items-center gap-2">🚛 Cargas Fechadas</h4>
+            <p className="text-xs text-zinc-500 font-normal leading-relaxed">Logística pesada e pátio centralizado para entrega contínua em frentes de obra rodoviárias.</p>
           </div>
           <div className="space-y-1">
-            <h4 className="font-bold text-zinc-900 text-sm flex items-center gap-2">📜 Rigor Ambiental</h4>
-            <p className="text-xs text-zinc-500 leading-relaxed">Segurança jurídica total para construtoras. Todo o volume transportado acompanha o selo do DOF.</p>
+            <h4 className="font-black text-zinc-900 text-xs uppercase tracking-wider flex items-center gap-2">📜 Rigor Ambiental</h4>
+            <p className="text-xs text-zinc-500 font-normal leading-relaxed">Segurança jurídica total para construtoras. Todo o volume transportado acompanha o selo ativo do DOF.</p>
           </div>
           <div className="space-y-1">
-            <h4 className="font-bold text-zinc-900 text-sm flex items-center gap-2">🏗️ Alta Densidade Mecânica</h4>
-            <p className="text-xs text-zinc-500 leading-relaxed">Madeira bruta selecionada na fonte com excelente rigidez mecânica natural, ideal para suportar cargas estruturais.</p>
+            <h4 className="font-black text-zinc-900 text-xs uppercase tracking-wider flex items-center gap-2">🏗️ Densidade Mecânica</h4>
+            <p className="text-xs text-zinc-500 font-normal leading-relaxed">Madeira bruta selecionada na fonte com excelente rigidez mecânica natural, ideal para suportar cargas estruturais.</p>
           </div>
         </div>
 
@@ -91,16 +92,16 @@ export default function RodoviasPage() {
           </h2>
           
           {produtosInfra.length === 0 ? (
-            <p className="text-sm text-zinc-400 bg-white p-8 rounded-2xl border border-dashed border-stone-200 text-center">
+            <p className="text-xs font-normal text-zinc-400 bg-white p-8 rounded-2xl border border-dashed border-stone-200 text-center">
               Nenhum produto da categoria "infraestrutura" está visível no momento. Ative-os no painel admin.
             </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {produtosInfra.map((prod) => (
-                <div key={prod.id} className="bg-white p-6 rounded-2xl border border-stone-200/60 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow">
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-zinc-900 text-base">{prod.nome}</h3>
-                    <span className="text-[10px] uppercase tracking-wider text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-100">
+                <div key={prod.id} className="bg-white p-6 rounded-2xl border border-stone-200/60 flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-300">
+                  <div className="space-y-1.5">
+                    <h3 className="font-black text-zinc-900 text-sm md:text-base tracking-tight">{prod.nome}</h3>
+                    <span className="text-[9px] uppercase tracking-widest text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 inline-block">
                       Especificação Bruta
                     </span>
                   </div>
@@ -108,7 +109,8 @@ export default function RodoviasPage() {
                     href={`https://wa.me/${whatsappLimpo}?text=Olá!%20Solicito%20cotação%20corporativa%20B2B%20para%20a%20obra%20viária:%20${encodeURIComponent(prod.nome)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-emerald-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-900 transition-colors shadow-sm whitespace-nowrap"
+                    aria-label={`Solicitar faturamento PJ para o produto ${prod.nome}`} // 🟢 Elimina duplicidade de links idênticos para os robôs do Google
+                    className="bg-emerald-800 text-white text-[11px] font-black uppercase tracking-wider px-5 py-3 rounded-xl hover:bg-emerald-900 transition-colors shadow-sm whitespace-nowrap"
                   >
                     Faturamento PJ
                   </a>

@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic';
 import Diferenciais from '@/components/Diferenciais';
 import Setores from '@/components/Setores';
 
-// 🚀 CARREGAMENTO PREGUIÇOSO DO ESQUELETO: Só puxa se o banco de dados atrasar
 const SkeletonHome = dynamic(() => import('@/components/SkeletonHome'), {
   ssr: false,
 });
@@ -27,14 +26,22 @@ export default function PublicPage() {
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('todos');
   const [carregando, setCarregando] = useState<boolean>(true);
 
-  // 📡 Carregamento de configurações do pátio
+  // 🌳 Função inteligente para otimizar e comprimir imagens vindas do Cloudinary no CMS
+  const otimizarImagemUrl = (url: string) => {
+    if (!url) return '';
+    if (url.includes('cloudinary.com') && !url.includes('f_auto')) {
+      return url.replace('/image/upload/', '/image/upload/f_auto,q_auto/');
+    }
+    return url;
+  };
+
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     fetch(`${apiUrl}/api/site/config`)
       .then((res) => res.json())
       .then((data) => {
         setConfig(data);
-        setCarregando(false); // 🚀 Dados chegaram, desliga o esqueleto
+        setCarregando(false);
       })
       .catch((err) => {
         console.error('Erro ao carregar dados da Home:', err);
@@ -42,7 +49,6 @@ export default function PublicPage() {
       });
   }, []);
 
-  // 🔄 Rotação Automática dos Slides (Troca a cada 5 segundos)
   useEffect(() => {
     if (!config?.slides || config.slides.length <= 1) return;
 
@@ -53,12 +59,11 @@ export default function PublicPage() {
     return () => clearInterval(intervalo);
   }, [config?.slides]);
 
-  // 🟢 ENQUANTO O BACK-END ACORDA: Exibe a estrutura fantasma premium
   if (carregando || !config) {
     return <SkeletonHome />;
   }
 
-  const whatsappLimpo = config?.whatsapp?.replace(/\D/g, '') || '';
+  const whatsappLimpo = config?.whatsapp?.replace(/\D/g, '') || '5577992365475';
   
   const produtosFiltrados = (config?.produtosVitrine || []).filter((prod: Produto) => {
     const nomeDesc = `${prod.nome} ${prod.descricao || ''}`.toLowerCase();
@@ -70,8 +75,19 @@ export default function PublicPage() {
   return (
     <div className="w-full animate-fadeIn">
       
-      {/* 🌳 1. HERO PRINCIPAL COM TRANSIÇÃO EM FADE DINÂMICO E GRADIENTE SUAVIZADO */}
+      {/* 🌳 1. HERO PRINCIPAL COM PRE-LOAD E COMPRESSÃO NO SLIDER */}
       <section className="relative bg-emerald-950 text-white py-36 px-6 overflow-hidden h-[540px] flex items-center justify-center">
+        {/* 🔥 Força prioridade máxima no download da imagem do primeiro slide ativo para detonar o atraso do LCP */}
+        {config?.slides?.[slideAtivo]?.imagem && (
+          <img 
+            src={otimizarImagemUrl(config.slides[slideAtivo].imagem)} 
+            alt="" 
+            className="hidden" 
+            // @ts-ignore
+            fetchpriority="high" 
+          />
+        )}
+
         {(config?.slides || []).map((slide: any, idx: number) => (
           <div
             key={slide.id || `bg-slide-${idx}`}
@@ -81,7 +97,7 @@ export default function PublicPage() {
           >
             <div 
               className="absolute inset-0 bg-cover bg-center bg-fixed"
-              style={{ backgroundImage: `url(${slide.imagem || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09'})` }}
+              style={{ backgroundImage: `url(${otimizarImagemUrl(slide.imagem || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09')})` }}
             />
           </div>
         ))}
@@ -91,7 +107,7 @@ export default function PublicPage() {
         
         <div className="relative max-w-5xl mx-auto text-center space-y-6 z-20">
           <span className="bg-emerald-800/80 text-emerald-200 border border-emerald-600 px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-sm inline-block">
-            Direto do Produtor • Faturamento Directo
+            Direto do Produtor • Faturamento Direto
           </span>
           
           <div className="min-h-[160px] flex flex-col justify-center">
@@ -126,14 +142,14 @@ export default function PublicPage() {
         <Diferenciais diferenciais={config?.diferenciais} />
       </div>
 
-      {/* 🚛 3. PARALLAX DE LOGÍSTICA */}
+      {/* 🚛 3. PARALLAX DE LOGÍSTICA OTIMIZADO */}
       <section
         className="relative h-[440px] bg-fixed bg-center bg-cover flex items-center justify-center overflow-hidden"
         style={{
-          backgroundImage: `url(${
+          backgroundImage: `url(${otimizarImagemUrl(
             config?.parallax?.logistica?.imagemUrl ||
             'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=1600'
-          })`,
+          )})`,
         }}
       >
         <div className="absolute inset-0 bg-stone-950/75 z-10" />
@@ -142,7 +158,7 @@ export default function PublicPage() {
             {config?.parallax?.logistica?.titulo || 'Logística Pesada e Entrega Programada'}
           </h2>
           <p className="text-sm md:text-base text-stone-300 max-w-2xl mx-auto font-light leading-relaxed">
-            {config?.parallax?.logistica?.subtitulo || 'Abastecemos canteiros de obras, structures rurais e indústrias com faturamento direto da fonte em qualquer região do estado.'}
+            {config?.parallax?.logistica?.subtitulo || 'Abastecemos canteiros de obras, estruturas rurais e indústrias com faturamento direto da fonte em qualquer região do estado.'}
           </p>
         </div>
       </section>
@@ -152,15 +168,15 @@ export default function PublicPage() {
         <Setores whatsapp={whatsappLimpo} setores={config?.setores} />
       </div>
 
-      {/* 📊 5. MIX DE PRODUTOS */}
+      {/* 📊 5. MIX DE PRODUTOS COMPRIMIDO COM ARIA-LABELS EXCLUSIVOS */}
       <main
         id="catalogo"
         className="relative bg-fixed bg-center bg-cover py-24 px-6 space-y-16 overflow-hidden text-stone-100"
         style={{
-          backgroundImage: `url(${
+          backgroundImage: `url(${otimizarImagemUrl(
             config?.parallax?.catalogo?.imagemUrl ||
             'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=1600'
-          })`,
+          )})`,
         }}
       >
         <div className="absolute inset-0 bg-emerald-950/90 z-10" />
@@ -202,6 +218,7 @@ export default function PublicPage() {
           ].map(tab => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setCategoriaAtiva(tab.id)}
               className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border transition-all ${
                 categoriaAtiva === tab.id 
@@ -246,6 +263,7 @@ export default function PublicPage() {
                       href={`https://wa.me/${whatsappLimpo}?text=Olá!%20Gostaria%20de%20solicitar%20um%20orçamento%20para%20o%20material:%20${encodeURIComponent(prod.nome)}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
+                      aria-label={`Cotar no WhatsApp para o produto ${prod.nome}`} // 🟢 SOLUÇÃO DO GOOGLE: Cria links únicos e zera o erro de auditoria
                       className="w-full bg-emerald-700 text-white text-center py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 hover:bg-emerald-800 shadow-md block"
                     >
                       Cotar no WhatsApp
