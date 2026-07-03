@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 
-// 🛑 CREDENCIAIS DO TELEGRAM:
 const TELEGRAM_TOKEN = '8692435392:AAGqB3A5UPEMgxkuLLz-GTsm_W7UoICgSTs';
 const TELEGRAM_CHAT_ID = '7947658384';
 
 export async function POST(request: Request) {
   try {
     const corpoRequisicao = await request.json();
-    const categoria = corpoRequisicao.categoria;
+    const { nome, empresa, telefone, categoria, mensagem, origem, email } = corpoRequisicao;
 
     let setorResponsavel = 'PÁTIO CENTRAL';
     let canalAtendimento = 'Geral';
@@ -34,79 +33,57 @@ export async function POST(request: Request) {
         canalAtendimento = 'Triagem Geral';
     }
 
-    const leadRoteado = {
-      ...corpoRequisicao,
-      setor: setorResponsavel,
-      canal: canalAtendimento
-    };
-
-    // 🟢 CONEXÃO REAL COM O BACK-END (Gravação no Firebase Firestore)
+    // 🟢 1. Gravação no Back-end (Firebase)
     try {
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      await fetch(`${backendUrl}/api/leads`, {
+      const dbResponse = await fetch(`${backendUrl}/api/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          companyName: leadRoteado.empresa || leadRoteado.nome,
-          segment: (leadRoteado.categoria || 'GERAL').toUpperCase(),
-          contactName: leadRoteado.nome,
-          phone: leadRoteado.telefone,
-          email: leadRoteado.email || null,
-          location: leadRoteado.origem || 'Vitória da Conquista - BA',
+          companyName: empresa || nome,
+          segment: (categoria || 'GERAL').toUpperCase(),
+          contactName: nome,
+          phone: telefone,
+          email: email || null,
+          location: origem || 'Vitória da Conquista - BA',
           aiScore: 90,
-          aiJustification: `Lead qualificado vindo do formulário da Vitrine do Site. Interesse em: ${leadRoteado.categoria}.`
+          aiJustification: `Lead vindo do formulário do site.`
         })
       });
-      console.log("💾 Lead gravado com sucesso no Firebase via Back-end!");
+      
+      console.log("✈️ Resposta do Banco de Dados Status:", dbResponse.status);
     } catch (dbErr) {
-      console.error("❌ Erro ao enviar lead para o back-end:", dbErr);
+      console.error("❌ ERRO NO BACKEND/FIREBASE:", dbErr);
     }
 
-    // ⚡ Disparo Push em Tempo Real via Telegram (Formatação limpa e segura para Markdown)
-    const mensagemTelegram = `🌲 *NOVO LEAD CAPTURADO!*
+    // ⚡ 2. Envio para o Telegram com tratamento rigoroso
+    const mensagemTelegram = `🌲 NOVO LEAD CAPTURADO!\n\n👤 Cliente: ${nome || 'Não informado'}\n🏢 Empresa: ${empresa || 'Não Informada'}\n📞 WhatsApp: ${telefone || 'Não informado'}\n📦 Material: ${(categoria || 'Geral').toUpperCase()}\n\n🎯 Destino: ${setorResponsavel}\n📢 Operação: ${canalAtendimento}\n📍 Origem: ${origem || 'Site'}\n\n💬 Mensagem: ${mensagem || 'Sem observações.'}`;
 
-👤 *Cliente:* ${leadRoteado.nome}
-🏢 *Empresa:* ${leadRoteado.empresa || 'Não Informada'}
-📞 *WhatsApp:* ${leadRoteado.telefone}
-📦 *Material:* ${(leadRoteado.categoria || 'Geral').toUpperCase()}
+    try {
+      const telResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: mensagemTelegram,
+          parse_mode: 'Markdown'
+        })
+      });
 
-🎯 *Destino:* ${leadRoteado.setor}
-📢 *Operação:* ${leadRoteado.canal}
-📍 *Origem/IP:* ${leadRoteado.origem || 'Site'}
+      const telData = await telResponse.json();
+      if (!telData.ok) {
+        console.error("❌ O TELEGRAM REJEITOU A MENSAGEM:", telData);
+      } else {
+        console.log("✅ TELEGRAM RESPONDEU: Mensagem enviada com sucesso!");
+      }
+    } catch (telErr) {
+      console.error("❌ FALHA DE REDE AO CONECTAR NO TELEGRAM:", telErr);
+    }
 
-💬 *Mensagem do Cliente:* ${leadRoteado.mensagem || 'Sem observações.'}
-
-⏱ _Acesse o painel local para gerenciar._`;
-
-    // Dispara para a API do Telegram em segundo plano
-    fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: messagingFormat(mensagemTelegram),
-        parse_mode: 'Markdown'
-      })
-    }).catch(err => console.error("Erro ao disparar Telegram:", err));
-
-    // Log de validação no terminal local do Next.js
-    console.log("=========================================");
-    console.log("🌲 LEAD DISTRIBUÍDO, NOTIFICADO E SALVO!");
-    console.log("Cliente:", leadRoteado.nome);
-    console.log("📍 Destino Interno:", leadRoteado.setor);
-    console.log("=========================================");
-
-    return NextResponse.json({ 
-      success: true, 
-      message: "Lead processado, salvo e notificado com sucesso!" 
-    }, { status: 200 });
+    return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error) {
-    console.error("❌ Erro no motor de distribuição e alerta:", error);
+    console.error("❌ ERRO CRÍTICO NA ROTA:", error);
     return NextResponse.json({ error: "Falha interna." }, { status: 500 });
   }
-}
-
-function messagingFormat(text: string) {
-  return text.trim();
 }
