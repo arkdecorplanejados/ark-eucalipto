@@ -37,7 +37,8 @@ export default function Header({ config, whatsappLimpo, menuAberto, setMenuAbert
             ) : (
               <div className="flex flex-col">
                 <span className="text-2xl font-serif font-black text-emerald-950 tracking-tight leading-none">Ark Eucalipto</span>
-                <span className="text-[10px] uppercase font-black tracking-widest text-emerald-600 mt-1">Madeiras In Natura</span>
+                {/* 🟢 CORREÇÃO DE CONTRASTE: Alterado de text-emerald-600 para text-emerald-800 para cravar 100% de Acessibilidade */}
+                <span className="text-[10px] uppercase font-black tracking-widest text-emerald-800 mt-1">Madeiras In Natura</span>
               </div>
             )}
           </a>
