@@ -19,7 +19,7 @@ export default function Footer({ dados }: FooterProps) {
   const [emailNews, setEmailNews] = useState('');
   const [statusNews, setStatusNews] = useState<'ocioso' | 'carregando' | 'sucesso'>('ocioso');
 
-  const descricao = dados?.descricaoSite || "Soluções sustentáveis em madeira bruta, escoramentos estruturais e biomassa para toda a Bahia. Faturamento direto do produtor com garantia de procedência legal.";
+  const descricao = dados?.descricaoSite || "Soluções sustentáveis in madeira bruta, escoramentos estruturais e biomassa para toda a Bahia. Faturamento direto do produtor com garantia de procedência legal.";
   const whatsappPuro = dados?.whatsapp || "77992365475";
   const emailValido = dados?.email || "contato@arkdecor.com.br";
   const enderecoValido = dados?.endereco || "Vitória da Conquista - BA";
@@ -70,18 +70,18 @@ export default function Footer({ dados }: FooterProps) {
           <div className="md:col-span-5 space-y-1.5">
             <h3 className="text-xl font-serif font-light tracking-tight text-zinc-100 leading-tight">
               Acompanhe nossos lotes <br />
-              <span className="text-zinc-500 font-sans text-[10px] font-black uppercase tracking-widest block mt-1">
+              <span className="text-zinc-400 font-sans text-[10px] font-black uppercase tracking-widest block mt-1">
                 Informativo Industrial Ark
               </span>
             </h3>
-            <p className="text-[11px] text-zinc-500 font-normal leading-relaxed max-w-xs">
+            {/* 🟢 CORREÇÃO DE CONTRASTE: Mudado de text-zinc-500 para text-zinc-400 para leitura perfeita */}
+            <p className="text-[11px] text-zinc-400 font-normal leading-relaxed max-w-xs">
               Assine para receber tabelas de preços de eucalipto tratado e relatórios de novos cortes no pátio.
             </p>
           </div>
 
           <div className="md:col-span-7 space-y-2">
             <form onSubmit={handleInscricaoNews} className="flex flex-col sm:flex-row gap-2">
-              {/* 🟢 Solução de Acessibilidade: Label explicitamente associado ao Input */}
               <label htmlFor="email-newsletter" className="sr-only">
                 Seu melhor e-mail corporativo ou pessoal
               </label>
@@ -124,7 +124,7 @@ export default function Footer({ dados }: FooterProps) {
               </div>
               <span>ARK EUCALIPTO</span>
             </div>
-            <p className="text-xs text-zinc-500 leading-relaxed font-normal max-w-sm">
+            <p className="text-xs text-zinc-400 leading-relaxed font-normal max-w-sm">
               {descricao}
             </p>
           </div>
@@ -139,7 +139,9 @@ export default function Footer({ dados }: FooterProps) {
                 { label: 'Início', href: '/' },
                 { label: 'Produtos', href: '#catalogo' },
                 { label: 'Diferenciais', href: '/diferenciais' },
-                { label: 'Dúvidas (FAQ)', href: '/faq' }
+                { label: 'Dúvidas (FAQ)', href: '/faq' },
+                // 🟢 ADICIONADO: Link mapeado apontando para a nova rota institucional
+                { label: 'Privacidade', href: '/politica-de-privacidade' }
               ].map((link, idx) => (
                 <li key={idx}>
                   <Link 
