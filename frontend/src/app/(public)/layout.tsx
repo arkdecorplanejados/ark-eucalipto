@@ -3,8 +3,8 @@ import PublicLayoutClient from './layout-client';
 
 // 🚀 Metadados idênticos para o Google indexar
 export const metadata: Metadata = {
-  title: 'Ark Eucalipto | Madeira Tratada, Mourões e Lenha Premium',
-  description: 'Especialistas em eucalipto tratado de alta durabilidade para cercas, mourões rurais e fornecimento de lenha selecionada em Vitória da Conquista - BA.',
+  title: 'Ark Eucalipto | Eucalipto In Natura, Mourões e Lenha Premium',
+  description: 'Especialistas em eucalipto in natura de alta durabilidade para cercas, mourões rurais e fornecimento de lenha selecionada em Vitória da Conquista - BA.',
   keywords: [
     'Ark',
     'Eucalipto',
