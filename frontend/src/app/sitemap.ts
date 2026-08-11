@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // 🟢 Ajustado para bater exatamente com a URL cadastrada no seu Google Search Console
-  const baseUrl = 'https://arkeucalipto.com.br'; 
+  // 🟢 Ajustado para bater exatamente com o domínio principal na Vercel (com www)
+  const baseUrl = 'https://www.arkeucalipto.com.br'; 
 
   return [
     {

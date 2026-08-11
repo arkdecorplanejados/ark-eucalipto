@@ -1,14 +1,16 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = 'https://www.arkeucalipto.com.br';
+
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/dashboard/'], // Bloqueia o painel administrativo das buscas públicas
+        disallow: ['/api/', '/dashboard', '/dashboard/'],
       },
     ],
-    sitemap: 'https://arkeucalipto.com.br/sitemap.xml',
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
