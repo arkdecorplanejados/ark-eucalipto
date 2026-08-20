@@ -2,13 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import Diferenciais from '@/components/Diferenciais';
 import Setores from '@/components/Setores';
-
-const SkeletonHome = dynamic(() => import('@/components/SkeletonHome'), {
-  ssr: false,
-});
 
 interface Produto {
   id: string;
@@ -19,14 +14,62 @@ interface Produto {
   preco?: string;
 }
 
+// 🟢 Dados padrão para garantir que o Googlebot sempre encontre conteúdo HTML completo
+const CONFIG_FALLBACK = {
+  whatsapp: '5577992365475',
+  slides: [
+    {
+      id: 'slide-1',
+      imagem: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09',
+      titulo: 'Ark Eucalipto In Natura',
+      subtitulo: 'Alta qualidade, rigidez estrutural e sustentabilidade com faturamento direto de Vitória da Conquista para toda a Bahia.',
+    },
+  ],
+  parallax: {
+    logistica: {
+      titulo: 'Logística Pesada e Entrega Programada',
+      subtitulo: 'Abastecemos canteiros de obras, estruturas rurais e indústrias com faturamento direto da fonte em qualquer região do estado.',
+      imagemUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=1600',
+    },
+    catalogo: {
+      imagemUrl: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=1600',
+    },
+  },
+  produtosVitrine: [
+    {
+      id: 'prod-1',
+      nome: 'Mourão de Eucalipto',
+      descricao: 'Madeira robusta de alta densidade selecionada diretamente na fonte para cercas e estruturas rurais.',
+      categoria: 'rural',
+      visivel: true,
+      preco: 'Sob Consulta',
+    },
+    {
+      id: 'prod-2',
+      nome: 'Escora de Eucalipto',
+      descricao: 'Eucalipto in natura de alta resistência mecânica para escoramento de lajes e vigas na construção civil.',
+      categoria: 'innatura',
+      visivel: true,
+      preco: 'Sob Consulta',
+    },
+    {
+      id: 'prod-3',
+      nome: 'Lenha Selecionada',
+      descricao: 'Biomassa e lenha de alto rendimento calórico para pizzarias, olarias e caldeiras industriais.',
+      categoria: 'lenha',
+      visivel: true,
+      preco: 'Sob Consulta',
+    },
+  ],
+};
+
 export default function PublicPage() {
   const [slideAtivo, setSlideAtivo] = useState<number>(0);
-  const [config, setConfig] = useState<any>(null);
+  // 🟢 Inicializa com dados estáticos para renderização imediata no SSR
+  const [config, setConfig] = useState<any>(CONFIG_FALLBACK);
   const [termoBusca, setTermoBusca] = useState<string>('');
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('todos');
-  const [carregando, setCarregando] = useState<boolean>(true);
 
-  // 🌳 Função inteligente para otimizar e comprimir imagens vindas do Cloudinary no CMS
   const otimizarImagemUrl = (url: string) => {
     if (!url) return '';
     if (url.includes('cloudinary.com') && !url.includes('f_auto')) {
@@ -40,12 +83,12 @@ export default function PublicPage() {
     fetch(`${apiUrl}/api/site/config`)
       .then((res) => res.json())
       .then((data) => {
-        setConfig(data);
-        setCarregando(false);
+        if (data && typeof data === 'object') {
+          setConfig((prev: any) => ({ ...prev, ...data }));
+        }
       })
       .catch((err) => {
-        console.error('Erro ao carregar dados da Home:', err);
-        setCarregando(false);
+        console.error('Erro ao carregar dados dinâmicos da Home:', err);
       });
   }, []);
 
@@ -59,12 +102,8 @@ export default function PublicPage() {
     return () => clearInterval(intervalo);
   }, [config?.slides]);
 
-  if (carregando || !config) {
-    return <SkeletonHome />;
-  }
-
   const whatsappLimpo = config?.whatsapp?.replace(/\D/g, '') || '5577992365475';
-  
+
   const produtosFiltrados = (config?.produtosVitrine || []).filter((prod: Produto) => {
     const nomeDesc = `${prod.nome} ${prod.descricao || ''}`.toLowerCase();
     const bateTermo = nomeDesc.includes(termoBusca.toLowerCase());
@@ -74,17 +113,15 @@ export default function PublicPage() {
 
   return (
     <div className="w-full animate-fadeIn">
-      
-      {/* 🌳 1. HERO PRINCIPAL COM PRE-LOAD E COMPRESSÃO NO SLIDER */}
+      {/* 🌳 1. HERO PRINCIPAL */}
       <section className="relative bg-emerald-950 text-white py-36 px-6 overflow-hidden h-[540px] flex items-center justify-center">
-        {/* 🔥 Força prioridade máxima no download da imagem do primeiro slide ativo para detonar o atraso do LCP */}
         {config?.slides?.[slideAtivo]?.imagem && (
-          <img 
-            src={otimizarImagemUrl(config.slides[slideAtivo].imagem)} 
-            alt="" 
-            className="hidden" 
+          <img
+            src={otimizarImagemUrl(config.slides[slideAtivo].imagem)}
+            alt=""
+            className="hidden"
             // @ts-ignore
-            fetchpriority="high" 
+            fetchpriority="high"
           />
         )}
 
@@ -95,27 +132,32 @@ export default function PublicPage() {
               idx === slideAtivo ? 'opacity-35' : 'opacity-0'
             }`}
           >
-            <div 
+            <div
               className="absolute inset-0 bg-cover bg-center bg-fixed"
-              style={{ backgroundImage: `url(${otimizarImagemUrl(slide.imagem || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09')})` }}
+              style={{
+                backgroundImage: `url(${otimizarImagemUrl(
+                  slide.imagem || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09'
+                )})`,
+              }}
             />
           </div>
         ))}
-        
+
         <div className="absolute inset-0 bg-stone-950/45 z-10" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent from-70% via-stone-50/[0.02] via-[68%] via-stone-50/[0.12] via-[76%] via-stone-50/[0.35] via-[84%] via-stone-50/[0.70] via-[92%] to-stone-50 z-10" />
-        
+
         <div className="relative max-w-5xl mx-auto text-center space-y-6 z-20">
           <span className="bg-emerald-800/80 text-emerald-200 border border-emerald-600 px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-sm inline-block">
             Direto do Produtor • Faturamento Direto
           </span>
-          
+
           <div className="min-h-[160px] flex flex-col justify-center">
             <h1 className="text-4xl md:text-6xl font-serif font-black leading-tight max-w-4xl mx-auto text-stone-100 transition-all duration-700">
               {config?.slides?.[slideAtivo]?.titulo || 'Ark Eucalipto In Natura'}
             </h1>
             <p className="text-base md:text-xl text-stone-200 max-w-2xl mx-auto font-normal leading-relaxed mt-4 transition-all duration-700">
-              {config?.slides?.[slideAtivo]?.subtitulo || 'Alta qualidade, rigidez estrutural e sustentabilidade com faturamento direto de Vitória da Conquista para toda a Bahia.'}
+              {config?.slides?.[slideAtivo]?.subtitulo ||
+                'Alta qualidade, rigidez estrutural e sustentabilidade com faturamento direto de Vitória da Conquista para toda a Bahia.'}
             </p>
           </div>
 
@@ -142,13 +184,13 @@ export default function PublicPage() {
         <Diferenciais diferenciais={config?.diferenciais} />
       </div>
 
-      {/* 🚛 3. PARALLAX DE LOGÍSTICA OTIMIZADO */}
+      {/* 🚛 3. PARALLAX LOGÍSTICA */}
       <section
         className="relative h-[440px] bg-fixed bg-center bg-cover flex items-center justify-center overflow-hidden"
         style={{
           backgroundImage: `url(${otimizarImagemUrl(
             config?.parallax?.logistica?.imagemUrl ||
-            'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=1600'
+              'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=1600'
           )})`,
         }}
       >
@@ -158,7 +200,8 @@ export default function PublicPage() {
             {config?.parallax?.logistica?.titulo || 'Logística Pesada e Entrega Programada'}
           </h2>
           <p className="text-sm md:text-base text-stone-300 max-w-2xl mx-auto font-light leading-relaxed">
-            {config?.parallax?.logistica?.subtitulo || 'Abastecemos canteiros de obras, estruturas rurais e indústrias com faturamento direto da fonte em qualquer região do estado.'}
+            {config?.parallax?.logistica?.subtitulo ||
+              'Abastecemos canteiros de obras, estruturas rurais e indústrias com faturamento direto da fonte em qualquer região do estado.'}
           </p>
         </div>
       </section>
@@ -168,20 +211,20 @@ export default function PublicPage() {
         <Setores whatsapp={whatsappLimpo} setores={config?.setores} />
       </div>
 
-      {/* 📊 5. MIX DE PRODUTOS COMPRIMIDO COM ARIA-LABELS EXCLUSIVOS */}
+      {/* 📊 5. MIX DE PRODUTOS */}
       <main
         id="catalogo"
         className="relative bg-fixed bg-center bg-cover py-24 px-6 space-y-16 overflow-hidden text-stone-100"
         style={{
           backgroundImage: `url(${otimizarImagemUrl(
             config?.parallax?.catalogo?.imagemUrl ||
-            'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=1600'
+              'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=1600'
           )})`,
         }}
       >
         <div className="absolute inset-0 bg-emerald-950/90 z-10" />
         <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-zinc-900/40 opacity-10 z-10" />
-        
+
         <div className="text-center space-y-3 relative z-20">
           <div className="flex items-center justify-center gap-3">
             <span className="w-8 h-[1px] bg-emerald-500 inline-block"></span>
@@ -199,12 +242,12 @@ export default function PublicPage() {
         <div className="bg-zinc-900/90 backdrop-blur-sm border border-zinc-800 rounded-3xl p-6 shadow-2xl max-w-4xl mx-auto relative group transition-all duration-300 hover:border-emerald-600/50 z-20">
           <div className="relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 text-zinc-500 group-focus-within:text-emerald-400 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Buscar no pátio... (Ex: Mourão, Escora, Lenha)" 
-              value={termoBusca} 
-              onChange={(e) => setTermoBusca(e.target.value)} 
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl py-4 pr-5 pl-14 text-xs md:text-sm focus:outline-none focus:border-emerald-600 focus:bg-zinc-950 text-white transition-all font-medium placeholder-zinc-500" 
+            <input
+              type="text"
+              placeholder="Buscar no pátio... (Ex: Mourão, Escora, Lenha)"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl py-4 pr-5 pl-14 text-xs md:text-sm focus:outline-none focus:border-emerald-600 focus:bg-zinc-950 text-white transition-all font-medium placeholder-zinc-500"
             />
           </div>
         </div>
@@ -214,15 +257,15 @@ export default function PublicPage() {
             { id: 'todos', label: 'Ver Todo o Estoque' },
             { id: 'innatura', label: '🪵 In Natura' },
             { id: 'rural', label: '🌲 Linha Rural' },
-            { id: 'lenha', label: '🔥 Biomassa / Lenha' }
-          ].map(tab => (
+            { id: 'lenha', label: '🔥 Biomassa / Lenha' },
+          ].map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setCategoriaAtiva(tab.id)}
               className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border transition-all ${
-                categoriaAtiva === tab.id 
-                  ? 'bg-emerald-700 border-emerald-500 text-white shadow-lg scale-105' 
+                categoriaAtiva === tab.id
+                  ? 'bg-emerald-700 border-emerald-500 text-white shadow-lg scale-105'
                   : 'bg-zinc-900/80 backdrop-blur-sm border-zinc-800 text-stone-300 hover:bg-zinc-800 hover:text-white'
               }`}
             >
@@ -235,8 +278,8 @@ export default function PublicPage() {
           {produtosFiltrados.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
               {produtosFiltrados.map((prod: any) => (
-                <div 
-                  key={prod.id} 
+                <div
+                  key={prod.id}
                   className="bg-zinc-900/90 backdrop-blur-sm border border-zinc-800/80 rounded-3xl p-8 flex flex-col justify-between shadow-2xl hover:border-emerald-600/40 hover:-translate-y-2 transition-all duration-500 group"
                 >
                   <div className="space-y-4">
@@ -253,17 +296,19 @@ export default function PublicPage() {
                       {prod.descricao || 'Madeira robusta de alta densidade selecionada diretamente na fonte pautada no manejo sustentável.'}
                     </p>
                   </div>
-                  
+
                   <div className="pt-8 space-y-4">
                     <div className="flex items-baseline gap-2 border-t border-zinc-800 pt-4">
                       <span className="text-[10px] uppercase font-black tracking-wider text-zinc-500">Preço Pátio:</span>
                       <span className="text-emerald-400 font-serif font-black text-lg">{prod.preco || 'Sob Consulta'}</span>
                     </div>
-                    <a 
-                      href={`https://wa.me/${whatsappLimpo}?text=Olá!%20Gostaria%20de%20solicitar%20um%20orçamento%20para%20o%20material:%20${encodeURIComponent(prod.nome)}`} 
-                      target="_blank" 
+                    <a
+                      href={`https://wa.me/${whatsappLimpo}?text=Olá!%20Gostaria%20de%20solicitar%20um%20orçamento%20para%20o%20material:%20${encodeURIComponent(
+                        prod.nome
+                      )}`}
+                      target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Cotar no WhatsApp para o produto ${prod.nome}`} // 🟢 SOLUÇÃO DO GOOGLE: Cria links únicos e zera o erro de auditoria
+                      aria-label={`Cotar no WhatsApp para o produto ${prod.nome}`}
                       className="w-full bg-emerald-700 text-white text-center py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 hover:bg-emerald-800 shadow-md block"
                     >
                       Cotar no WhatsApp
