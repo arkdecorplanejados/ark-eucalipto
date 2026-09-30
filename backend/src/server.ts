@@ -15,7 +15,6 @@ dotenv.config();
 // ========================================================
 if (!admin.apps.length) {
   try {
-    // Se a chave privada estiver nas variáveis de ambiente (Produção - Render)
     if (process.env.FIREBASE_PRIVATE_KEY) {
       admin.initializeApp({
         credential: admin.credential.cert({
@@ -25,9 +24,7 @@ if (!admin.apps.length) {
         }),
       });
       console.log(`🔥 Firebase Admin autenticado com SUCESSO via Variáveis de Ambiente!`);
-    } 
-    // Caso contrário, busca o arquivo físico (Desenvolvimento - Local)
-    else {
+    } else {
       const credentialsPath = process.env.FIREBASE_CREDENTIALS_PATH || './firebase-keys.json';
       const serviceAccount = JSON.parse(
         readFileSync(join(process.cwd(), credentialsPath), 'utf8')
@@ -44,26 +41,49 @@ if (!admin.apps.length) {
     process.exit(1);
   }
 }
-// ========================================================
 
-// 2. SÓ IMPORTA O RESTANTE DO SISTEMA DEPOIS QUE O FIREBASE JÁ ESTÁ RODANDO
+// 2. IMPORTAÇÕES DAS ROTAS
 import leadRoutes from './routes/leads.js';
 import siteRoutes from './routes/site.js'; 
-import financeRoutes from './routes/finance.js'; // 🟢 INJETADO: Import do novo módulo financeiro
+import financeRoutes from './routes/finance.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middlewares Globais
-app.use(helmet()); 
+// 🟢 FIX 1: Desativa a restrição de recursos cruzados do Helmet para permitir acessos de fora
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+); 
+
 app.use(compression()); 
 
-// CORS Totalmente aberto e amigável para a Vercel e requisições externas
-app.use(cors({
-  origin: '*', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// 🟢 FIX 2: Configuração detalhada do CORS com suporte explícito a preflight (OPTIONS)
+const allowedOrigins = [
+  'https://www.arkeucalipto.com.br',
+  'https://arkeucalipto.com.br',
+  'http://localhost:3000',
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Permite requisições sem origem (como apps mobile ou Postman) ou origens na lista
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Ou troque por true para liberar totalmente
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+);
+
+// Garantia para lidar com requisições de teste OPTIONS do navegador
+app.options('*', cors());
 
 app.use(express.json({ limit: '10mb' })); 
 app.use(express.urlencoded({ limit: '10mb', extended: true })); 
@@ -71,13 +91,12 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Vincula as rotas de gerenciamento
 app.use('/api/leads', leadRoutes);
 app.use('/api/site', siteRoutes); 
-app.use('/api/finance', financeRoutes); // 🟢 INJETADO: Prefixo global para o fluxo de caixa da Ark
+app.use('/api/finance', financeRoutes);
 
 // ========================================================
 // 🔐 ENDPOINTS DE AUTENTICAÇÃO INTERNOS
 // ========================================================
 
-// CADASTRO: /api/auth/register
 app.post('/api/auth/register', async (req: Request, res: Response) => {
   const { nome, email, senha } = req.body;
 
@@ -104,7 +123,6 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
   }
 });
 
-// LOGIN: /api/auth/login
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   const { email, senha } = req.body;
 
