@@ -59,7 +59,7 @@ app.use(
 
 app.use(compression()); 
 
-// 🟢 FIX 2: Configuração detalhada do CORS com suporte explícito a preflight (OPTIONS)
+// 🟢 FIX 2: Configuração detalhada do CORS compatível com Express 5
 const allowedOrigins = [
   'https://www.arkeucalipto.com.br',
   'https://arkeucalipto.com.br',
@@ -69,11 +69,10 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Permite requisições sem origem (como apps mobile ou Postman) ou origens na lista
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(null, true); // Ou troque por true para liberar totalmente
+        callback(null, true);
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -81,9 +80,6 @@ app.use(
     credentials: true,
   })
 );
-
-// Garantia para lidar com requisições de teste OPTIONS do navegador
-app.options('*', cors());
 
 app.use(express.json({ limit: '10mb' })); 
 app.use(express.urlencoded({ limit: '10mb', extended: true })); 

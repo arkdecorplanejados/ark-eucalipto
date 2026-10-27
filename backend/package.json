@@ -4,10 +4,13 @@
   "description": "",
   "main": "src/server.ts",
   "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.ts",
+    "start": "node dist/server.js",
     "limpar-site": "tsx -e \"import admin from 'firebase-admin'; import { readFileSync } from 'fs'; const keys = JSON.parse(readFileSync('./firebase-keys.json', 'utf8')); admin.initializeApp({ credential: admin.credential.cert(keys) }); const db = admin.firestore(); await db.collection('configuracoes').doc('site').delete(); console.log('🗑️ Documento \\\"site\\\" deletado com SUCESSO do Firebase!'); process.exit(0);\""
   },
   "keywords": [],
