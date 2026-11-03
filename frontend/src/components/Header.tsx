@@ -23,21 +23,20 @@ export default function Header({ config, whatsappLimpo, menuAberto, setMenuAbert
     <header className="bg-white sticky top-0 z-50 border-b border-stone-100 shadow-md">
       <div className="max-w-7xl mx-auto px-6 h-28 flex items-center justify-between gap-4">
         
-        {/* LOGO COESÃO CLOUDINARY */}
+        {/* LOGO CLOUDINARY */}
         <div className="flex-shrink-0">
           <a href="/" className="block transition-transform hover:scale-105 py-2">
             {config?.logoUrl ? (
               <img 
                 src={otimizarLogoUrl(config.logoUrl)} 
                 alt="Ark Eucalipto" 
-                width={280}   // 🟢 Largura explícita para matar o erro de CLS
-                height={96}   // 🟢 Altura explícita correspondente ao h-24
+                width={285} 
+                height={96} 
                 className="h-20 md:h-24 w-auto object-contain max-w-[280px] drop-shadow-md select-none" 
               />
             ) : (
               <div className="flex flex-col">
                 <span className="text-2xl font-serif font-black text-emerald-950 tracking-tight leading-none">Ark Eucalipto</span>
-                {/* 🟢 CORREÇÃO DE CONTRASTE: Alterado de text-emerald-600 para text-emerald-800 para cravar 100% de Acessibilidade */}
                 <span className="text-[10px] uppercase font-black tracking-widest text-emerald-800 mt-1">Madeiras In Natura</span>
               </div>
             )}
@@ -46,13 +45,13 @@ export default function Header({ config, whatsappLimpo, menuAberto, setMenuAbert
         
         {/* NAVEGAÇÃO DESKTOP */}
         <nav className="hidden lg:flex items-center gap-8">
-          {(config?.menu || []).map((link: any) => (
+          {(config?.menu || []).map((link: any, index: number) => (
             <a 
-              key={link.id} 
-              href={link.href} 
+              key={index} 
+              href={link.url || link.href} 
               className="group relative text-sm font-bold text-zinc-600 hover:text-emerald-900 py-2 block transition-colors"
             >
-              {link.label}
+              {link.titulo || link.label}
               <span className="absolute bottom-0 left-0 w-full h-[2px] bg-emerald-700 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
             </a>
           ))}
@@ -65,7 +64,7 @@ export default function Header({ config, whatsappLimpo, menuAberto, setMenuAbert
               href="https://instagram.com/arkeucalipto" 
               target="_blank" 
               rel="noopener noreferrer" 
-              aria-label="Acesse nosso perfil no Instagram" // 🟢 Correção de acessibilidade para agentes de IA e leitores
+              aria-label="Acesse nosso perfil no Instagram" 
               className="text-zinc-500 hover:text-emerald-800 transition-all hover:scale-110 p-1"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
@@ -74,7 +73,7 @@ export default function Header({ config, whatsappLimpo, menuAberto, setMenuAbert
               href="https://facebook.com/arkeucalipto" 
               target="_blank" 
               rel="noopener noreferrer" 
-              aria-label="Acesse nossa página no Facebook" // 🟢 Correção de acessibilidade
+              aria-label="Acesse nossa página no Facebook" 
               className="text-zinc-500 hover:text-emerald-800 transition-all hover:scale-110 p-1"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
@@ -92,7 +91,7 @@ export default function Header({ config, whatsappLimpo, menuAberto, setMenuAbert
 
           <button 
             onClick={() => setMenuAberto(!menuAberto)} 
-            aria-label={menuAberto ? "Fechar menu" : "Abrir menu"} // 🟢 Dá nome acessível para o controle do botão mobile
+            aria-label={menuAberto ? "Fechar menu" : "Abrir menu"} 
             className="lg:hidden p-2 text-zinc-700 hover:text-emerald-800 transition-colors focus:outline-none"
           >
             {menuAberto ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -104,9 +103,14 @@ export default function Header({ config, whatsappLimpo, menuAberto, setMenuAbert
       {menuAberto && (
         <div className="lg:hidden bg-white border-t border-stone-100 px-6 py-6 space-y-4 shadow-inner">
           <nav className="flex flex-col gap-4">
-            {(config?.menu || []).map((link: any) => (
-              <a key={link.id} href={link.href} onClick={() => setMenuAberto(false)} className="text-base font-bold text-zinc-700 hover:text-emerald-900">
-                {link.label}
+            {(config?.menu || []).map((link: any, index: number) => (
+              <a 
+                key={index} 
+                href={link.url || link.href} 
+                onClick={() => setMenuAberto(false)} 
+                className="text-base font-bold text-zinc-700 hover:text-emerald-900"
+              >
+                {link.titulo || link.label}
               </a>
             ))}
           </nav>

@@ -8,6 +8,7 @@ import NotasFiscais from './components/NotasFiscais';
 import Calendario from './components/Calendario'; 
 import Diferenciais from './components/Diferenciais'; 
 import FAQAdmin from './components/FAQ'; 
+import NavbarAdmin from './components/NavbarAdmin'; // 🟢 Importação do Gestor de Navbar
 
 // 🟢 URL DINÂMICA NO TOPO: Detecta automaticamente se deve usar a Render ou o localhost
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -35,6 +36,7 @@ export default function CMSPage() {
         if (data) {
           setDados({
             ...data,
+            menu: data.menu || [], // 🟢 Garante sincronia do menu do Navbar
             parallax: data.parallax || {
               logistica: { titulo: '', subtitulo: '', imagemUrl: '' },
               catalogo: { titulo: '', subtitulo: '', imagemUrl: '' }
@@ -76,9 +78,10 @@ export default function CMSPage() {
     );
   }
 
-  // 🟢 Abas ajustadas: Apenas o financeiro antigo foi removido! NFs e Calendário preservados.
+  // 🟢 Abas ajustadas com a adição do Navbar Admin
   const abas = [
     { id: 'geral', label: 'Informações Gerais' },
+    { id: 'navbar', label: '🧭 Menu (Navbar)' }, // 🟢 Nova aba adicionada
     { id: 'notas', label: '📑 Notas Fiscais' }, 
     { id: 'calendario', label: '🗓️ Agenda & Atividades' },
     { id: 'produtos', label: 'Vitrine do Pátio' },
@@ -123,6 +126,7 @@ export default function CMSPage() {
       {/* Container Dinâmico Isolado */}
       <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 shadow-sm">
         {abaAtiva === 'geral' && <Geral dados={dados} setDados={setDados} />}
+        {abaAtiva === 'navbar' && <NavbarAdmin dados={dados} setDados={setDados} />} {/* 🟢 Renderiza o gestor do menu */}
         {abaAtiva === 'notas' && <NotasFiscais />}
         {abaAtiva === 'calendario' && <Calendario />}
         {abaAtiva === 'slides' && <Slides dados={dados} setDados={setDados} />}
