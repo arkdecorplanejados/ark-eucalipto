@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Calculator } from 'lucide-react';
 import Diferenciais from '@/components/Diferenciais';
 import Setores from '@/components/Setores';
+import CalculadoraMadeira from '@/components/CalculadoraMadeira';
 
 interface Produto {
   id: string;
@@ -114,7 +115,7 @@ export default function PublicPage() {
   return (
     <div className="w-full animate-fadeIn">
       {/* 🌳 1. HERO PRINCIPAL */}
-      <section className="relative bg-emerald-950 text-white py-36 px-6 overflow-hidden h-[540px] flex items-center justify-center">
+      <section className="relative bg-emerald-950 text-white py-36 px-6 overflow-hidden h-[560px] flex items-center justify-center">
         {config?.slides?.[slideAtivo]?.imagem && (
           <img
             src={otimizarImagemUrl(config.slides[slideAtivo].imagem)}
@@ -151,7 +152,7 @@ export default function PublicPage() {
             Direto do Produtor • Faturamento Direto
           </span>
 
-          <div className="min-h-[160px] flex flex-col justify-center">
+          <div className="min-h-[150px] flex flex-col justify-center">
             <h1 className="text-4xl md:text-6xl font-serif font-black leading-tight max-w-4xl mx-auto text-stone-100 transition-all duration-700">
               {config?.slides?.[slideAtivo]?.titulo || 'Ark Eucalipto In Natura'}
             </h1>
@@ -161,8 +162,24 @@ export default function PublicPage() {
             </p>
           </div>
 
+          {/* Botões de Ação Rápida no Hero */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <a
+              href="#calculadora"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all"
+            >
+              <Calculator className="w-4 h-4" /> Simular Cerca / Madeiramento
+            </a>
+            <a
+              href="#catalogo"
+              className="inline-flex items-center gap-2 bg-zinc-900/80 hover:bg-zinc-900 text-stone-100 border border-stone-600/60 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+            >
+              Ver Estoque do Pátio
+            </a>
+          </div>
+
           {config?.slides?.length > 1 && (
-            <div className="flex justify-center gap-2 pt-6">
+            <div className="flex justify-center gap-2 pt-4">
               {config.slides.map((_: any, idx: number) => (
                 <button
                   key={idx}
@@ -324,6 +341,9 @@ export default function PublicPage() {
           )}
         </div>
       </main>
+
+      {/* 🧮 6. CALCULADORA TÉCNICA DE CERCA E MADEIRAMENTO */}
+      <CalculadoraMadeira whatsappLimpo={whatsappLimpo} />
     </div>
   );
 }
