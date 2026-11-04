@@ -124,7 +124,6 @@ export default function CalculadoraMadeira({ whatsappLimpo = '5577992365475' }: 
   }, [tipo, metrosLineares, espacamento, fiosArame, largura, comprimento]);
 
   // 📡 Salva o Lead com Protocolo no Painel Administrativo e exibe a Tela de Proposta
-  // 📡 Salva o Lead formatado igual ao formulário de contato para cair direto no Dashboard e no Telegram
   const handleGerarProposta = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome || !telefone) return;
@@ -141,12 +140,12 @@ export default function CalculadoraMadeira({ whatsappLimpo = '5577992365475' }: 
       minute: '2-digit',
     });
 
-    // Formata o resumo técnico para o campo 'mensagem' e 'interesse'
-    const resumoItens = resultado.itens.map((i) => `${i.qtd} ${i.nome} (${i.bitola})`).join(' | ');
+    // Formata a lista para você receber no Telegram e no banco
+    const resumoItens = resultado.itens.map((i) => `• ${i.qtd} - ${i.nome} (${i.bitola})`).join('\n');
+    const mensagemCompleta = `[PROTOCOLO #${novoProtocolo}] Projeto: ${resultado.titulo}\n\nItens Calculados:\n${resumoItens}`;
 
     try {
-      // Envia para a rota interna do Next.js (que já grava no Firebase e dispara o Telegram)
-      await fetch('/api/contato', { 
+      await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -156,7 +155,7 @@ export default function CalculadoraMadeira({ whatsappLimpo = '5577992365475' }: 
           email: null,
           categoria: tipo === 'cerca' ? 'rural' : tipo === 'curral' ? 'tratado' : 'innatura',
           origem: cidade ? `Calculadora (${cidade})` : 'Calculadora do Site',
-          mensagem: `[PROTOCOLO #${novoProtocolo}] Projeto: ${resultado.titulo}. Itens: ${resumoItens}`
+          mensagem: mensagemCompleta
         }),
       });
     } catch (err) {

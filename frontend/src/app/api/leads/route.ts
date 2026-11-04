@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         canalAtendimento = 'Triagem Geral';
     }
 
-    // 🟢 1. Gravação no Back-end (Firebase)
+    // 🟢 1. Gravação no Back-end (Firebase via Render)
     try {
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const dbResponse = await fetch(`${backendUrl}/api/leads`, {
@@ -46,8 +46,8 @@ export async function POST(request: Request) {
           phone: telefone,
           email: email || null,
           location: origem || 'Vitória da Conquista - BA',
-          aiScore: 90,
-          aiJustification: `Lead vindo do formulário do site.`
+          aiScore: origem?.includes('Calculadora') ? 95 : 90,
+          aiJustification: mensagem || 'Lead capturado via site da Ark Eucalipto.'
         })
       });
       
@@ -56,8 +56,11 @@ export async function POST(request: Request) {
       console.error("❌ ERRO NO BACKEND/FIREBASE:", dbErr);
     }
 
-    // ⚡ 2. Envio para o Telegram com tratamento rigoroso
-    const mensagemTelegram = `🌲 NOVO LEAD CAPTURADO!\n\n👤 Cliente: ${nome || 'Não informado'}\n🏢 Empresa: ${empresa || 'Não Informada'}\n📞 WhatsApp: ${telefone || 'Não informado'}\n📦 Material: ${(categoria || 'Geral').toUpperCase()}\n\n🎯 Destino: ${setorResponsavel}\n📢 Operação: ${canalAtendimento}\n📍 Origem: ${origem || 'Site'}\n\n💬 Mensagem: ${mensagem || 'Sem observações.'}`;
+    // ⚡ 2. Envio para o Telegram com destaque se for da Calculadora
+    const isCalculadora = origem?.includes('Calculadora');
+    const tituloMensagem = isCalculadora ? '🧮 NOVO ORÇAMENTO DA CALCULADORA!' : '🌲 NOVO LEAD CAPTURADO!';
+
+    const mensagemTelegram = `${tituloMensagem}\n\n👤 Cliente: ${nome || 'Não informado'}\n🏢 Empresa/Registro: ${empresa || 'Não Informada'}\n📞 WhatsApp: ${telefone || 'Não informado'}\n📧 E-mail: ${email || 'Não informado'}\n📍 Origem: ${origem || 'Site'}\n\n💬 Detalhes / Itens:\n${mensagem || 'Sem observações.'}`;
 
     try {
       const telResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
