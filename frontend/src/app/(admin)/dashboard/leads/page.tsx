@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, Copy, Check, Calendar, UserCheck, MessageSquare, Trash2, CheckCircle, Clock, AlertCircle, Search, Target, Users, Eye, ArrowRight, History } from 'lucide-react';
+import { Mail, Copy, Check, Calendar, UserCheck, MessageSquare, Trash2, CheckCircle, Clock, AlertCircle, Search, Target, Users, Eye, ArrowRight, History, FileDown } from 'lucide-react';
 
 interface Interacao {
   data: string;
@@ -74,6 +74,95 @@ export default function LeadsPage() {
     navigator.clipboard.writeText(listaTexto);
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
+  };
+
+  // 📄 Função para gerar e descarregar o PDF do orçamento idêntico ao do cliente
+  const handleBaixarPdfAdmin = (lead: LeadProspeccao) => {
+    const janelaPrint = window.open('', '_blank', 'width=900,height=800');
+    if (!janelaPrint) return;
+
+    const textoMensagem = lead.aiJustification || 'Sem detalhes informados.';
+    const matchProtocolo = textoMensagem.match(/#([A-Z0-9-]+)/);
+    const protocolo = matchProtocolo ? matchProtocolo[1] : 'ARK-S/N';
+
+    const htmlDocumento = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Orçamento ${protocolo} - Ark Eucalipto</title>
+        <style>
+          @page { size: A4; margin: 18mm; }
+          body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #18181b; margin: 0; padding: 0; line-height: 1.5; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #064e3b; padding-bottom: 16px; margin-bottom: 24px; }
+          .brand-title { font-size: 26px; font-weight: 900; color: #064e3b; margin: 0; }
+          .brand-sub { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #047857; font-weight: 800; margin-top: 2px; }
+          .protocol-box { text-align: right; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 16px; border-radius: 8px; }
+          .protocol-label { font-size: 10px; text-transform: uppercase; color: #047857; font-weight: 800; }
+          .protocol-num { font-size: 18px; font-weight: 900; color: #064e3b; margin-top: 2px; }
+          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 24px; font-size: 13px; }
+          .info-label { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; }
+          .info-val { font-weight: 700; color: #0f172a; font-size: 14px; }
+          .content-box { background: #f4f5f7; padding: 16px; border-radius: 8px; font-size: 14px; white-space: pre-line; border-left: 4px solid #064e3b; }
+          .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #64748b; display: flex; justify-content: space-between; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <h1 class="brand-title">ARK EUCALIPTO</h1>
+            <div class="brand-sub">Painel Administrativo • Cópia Interna</div>
+            <div style="font-size: 12px; color: #52525b; margin-top: 6px;">
+              Vitória da Conquista - Bahia | www.arkeucalipto.com.br
+            </div>
+          </div>
+          <div class="protocol-box">
+            <div class="protocol-label">Protocolo do Cliente</div>
+            <div class="protocol-num">#${protocolo}</div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div>
+            <span class="info-label">Cliente / Contato</span>
+            <span class="info-val">${lead.contactName || lead.companyName || 'Não informado'}</span>
+          </div>
+          <div>
+            <span class="info-label">WhatsApp</span>
+            <span class="info-val">${lead.phone || 'Não informado'}</span>
+          </div>
+          <div>
+            <span class="info-label">Segmento / Categoria</span>
+            <span class="info-val">${lead.segment || 'Geral'}</span>
+          </div>
+          <div>
+            <span class="info-label">Localização / Origem</span>
+            <span class="info-val">${lead.location || 'Site'}</span>
+          </div>
+        </div>
+
+        <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #064e3b; text-transform: uppercase;">Detalhes da Simulação / Mensagem</h3>
+        <div class="content-box">
+          ${textoMensagem}
+        </div>
+
+        <div class="footer">
+          <span>Ark Eucalipto — Gestão de Leads e Pátio Central</span>
+          <span>Documento gerado internamente pelo Painel</span>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 250);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    janelaPrint.document.open();
+    janelaPrint.document.write(htmlDocumento);
+    janelaPrint.document.close();
   };
 
   // 🔄 Filtros dinâmicos aplicados na aba de prospecção ativa
@@ -231,11 +320,21 @@ export default function LeadsPage() {
             <div className="lg:col-span-5 bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-4 sticky top-4">
               {leadSelecionado ? (
                 <div className="space-y-4">
-                  <div className="border-b pb-3">
+                  <div className="border-b pb-3 space-y-2">
                     <span className="text-[9px] font-black uppercase text-emerald-600 tracking-widest block">Justificativa de Prospecção</span>
                     <h4 className="font-serif font-black text-base text-zinc-900 tracking-tight">{leadSelecionado.companyName}</h4>
-                    <p className="text-xs text-zinc-500 mt-1 leading-relaxed">{leadSelecionado.aiJustification || 'Sem justificativa detalhada pela IA.'}</p>
+                    <p className="text-xs text-zinc-500 leading-relaxed">{leadSelecionado.aiJustification || 'Sem justificativa detalhada pela IA.'}</p>
+                    
+                    {/* 📄 BOTÃO PARA GERAR E BAIXAR O PDF DO ORÇAMENTO/SIMULAÇÃO */}
+                    <button
+                      type="button"
+                      onClick={() => handleBaixarPdfAdmin(leadSelecionado)}
+                      className="mt-3 w-full bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      <FileDown className="w-4 h-4" /> Baixar Orçamento PDF
+                    </button>
                   </div>
+
                   <div className="space-y-2 text-xs">
                     <p className="text-zinc-400 font-medium">👤 Contato: <span className="text-zinc-800 font-bold">{leadSelecionado.contactName || 'Não Mapeado'}</span></p>
                     <p className="text-zinc-400 font-medium">📞 Telefone: <span className="text-zinc-900 font-mono font-bold select-all">{leadSelecionado.phone || 'Sem número'}</span></p>
