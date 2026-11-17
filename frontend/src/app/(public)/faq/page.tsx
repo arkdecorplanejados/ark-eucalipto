@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronDown, ChevronUp, Phone, HelpCircle } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, Phone } from 'lucide-react';
 import Link from 'next/link';
 
 interface FAQItem {
@@ -17,6 +17,7 @@ interface ParallaxConfig {
 
 export default function FAQPage() {
   const [itemAberto, setItemAberto] = useState<number | null>(null);
+  const [whatsappAtendimento, setWhatsappAtendimento] = useState<string>('5577998060448');
 
   // 🌲 Configurações de fallback inicial alinhadas ao padrão de design do site
   const [configBanner, setConfigBanner] = useState<ParallaxConfig>({
@@ -25,15 +26,14 @@ export default function FAQPage() {
     imagemUrl: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1600&auto=format&fit=crop&q=80"
   });
 
-  // 🔄 CONEXÃO COM O BANCO DE DADOS LOCAL DO CMS
+  // 🔄 CONEXÃO COM O BANCO DE DADOS LOCAL DO CMS (Banner + WhatsApp Oficial)
   useEffect(() => {
     const dadosGlobais = localStorage.getItem('ark_eucalipto_config');
     if (dadosGlobais) {
       const parsed = JSON.parse(dadosGlobais);
-      // Se você decidir criar uma chave dedicada 'faq' no painel, ele pesca aqui. 
-      // Caso contrário, ele herda uma imagem de madeira de cobertura do pátio para não quebrar.
-      const faqCms = parsed.parallax?.faq || parsed.parallax?.logistica;
       
+      // Atualiza o banner se houver configuração no CMS
+      const faqCms = parsed.parallax?.faq || parsed.parallax?.logistica;
       if (faqCms) {
         setConfigBanner({
           titulo: faqCms.titulo?.toUpperCase() || "DÚVIDAS FREQUENTES",
@@ -41,12 +41,21 @@ export default function FAQPage() {
           imagemUrl: faqCms.imagemUrl || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1600&auto=format&fit=crop&q=80"
         });
       }
+
+      // Puxa o WhatsApp dinâmico do painel administrativo (se estiver salvo lá)
+      const numeroCms = parsed.whatsapp || parsed.contato?.whatsapp || parsed.telefone;
+      if (numeroCms) {
+        const apenasDigitos = String(numeroCms).replace(/\D/g, '');
+        if (apenasDigitos.length >= 10) {
+          setWhatsappAtendimento(apenasDigitos.startsWith('55') ? apenasDigitos : `55${apenasDigitos}`);
+        }
+      }
     }
   }, []);
 
   const handleSolicitarSuporte = () => {
     const mensagem = encodeURIComponent("Olá! Dei uma olhada nas dúvidas frequentes do site, mas preciso de um suporte personalizado sobre os lotes de eucalipto.");
-    window.open(`https://wa.me/5577999999999?text=${mensagem}`, '_blank');
+    window.open(`https://wa.me/${whatsappAtendimento}?text=${mensagem}`, '_blank');
   };
 
   const listaFaq: FAQItem[] = [
@@ -112,7 +121,7 @@ export default function FAQPage() {
                 <button
                   type="button"
                   onClick={() => setItemAberto(aberto ? null : index)}
-                  className="w-full p-5 text-left flex items-center justify-between gap-4 focus:outline-none select-none"
+                  className="w-full p-5 text-left flex items-center justify-between gap-4 focus:outline-none select-none cursor-pointer"
                 >
                   <span className="text-xs md:text-sm font-black font-serif text-zinc-900 tracking-tight">
                     {item.pergunta}
@@ -143,7 +152,7 @@ export default function FAQPage() {
           <button
             type="button"
             onClick={handleSolicitarSuporte}
-            className="w-full md:w-auto whitespace-nowrap bg-emerald-700 hover:bg-emerald-800 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm"
+            className="w-full md:w-auto whitespace-nowrap bg-emerald-700 hover:bg-emerald-800 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
             <Phone className="w-4 h-4" /> Suporte no WhatsApp
           </button>
