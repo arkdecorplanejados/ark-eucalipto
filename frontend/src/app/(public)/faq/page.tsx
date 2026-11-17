@@ -13,49 +13,52 @@ interface ParallaxConfig {
   titulo: string;
   subtitulo: string;
   imagemUrl: string;
+  whatsappCTA?: string;
 }
 
 export default function FAQPage() {
   const [itemAberto, setItemAberto] = useState<number | null>(null);
-  const [whatsappAtendimento, setWhatsappAtendimento] = useState<string>('5577998060448');
 
   // 🌲 Configurações de fallback inicial alinhadas ao padrão de design do site
   const [configBanner, setConfigBanner] = useState<ParallaxConfig>({
     titulo: "DÚVIDAS FREQUENTES",
     subtitulo: "Esclareça suas principais dúvidas técnicas e comerciais sobre o nosso eucalipto tratado e logística",
-    imagemUrl: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1600&auto=format&fit=crop&q=80"
+    imagemUrl: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1600&auto=format&fit=crop&q=80",
+    whatsappCTA: ""
   });
 
-  // 🔄 CONEXÃO COM O BANCO DE DADOS LOCAL DO CMS (Banner + WhatsApp Oficial)
+  // 🔄 CONEXÃO COM O BANCO DE DADOS LOCAL DO CMS (Exatamente igual a DiferenciaisPage)
   useEffect(() => {
     const dadosGlobais = localStorage.getItem('ark_eucalipto_config');
     if (dadosGlobais) {
       const parsed = JSON.parse(dadosGlobais);
-      
-      // Atualiza o banner se houver configuração no CMS
       const faqCms = parsed.parallax?.faq || parsed.parallax?.logistica;
+      
       if (faqCms) {
         setConfigBanner({
           titulo: faqCms.titulo?.toUpperCase() || "DÚVIDAS FREQUENTES",
           subtitulo: faqCms.subtitulo || "Esclareça suas principais dúvidas técnicas e comerciais sobre o nosso eucalipto",
-          imagemUrl: faqCms.imagemUrl || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1600&auto=format&fit=crop&q=80"
+          imagemUrl: faqCms.imagemUrl || "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1600&auto=format&fit=crop&q=80",
+          whatsappCTA: faqCms.whatsappCTA || parsed.parallax?.logistica?.whatsappCTA || ""
         });
-      }
-
-      // Puxa o WhatsApp dinâmico do painel administrativo (se estiver salvo lá)
-      const numeroCms = parsed.whatsapp || parsed.contato?.whatsapp || parsed.telefone;
-      if (numeroCms) {
-        const apenasDigitos = String(numeroCms).replace(/\D/g, '');
-        if (apenasDigitos.length >= 10) {
-          setWhatsappAtendimento(apenasDigitos.startsWith('55') ? apenasDigitos : `55${apenasDigitos}`);
-        }
       }
     }
   }, []);
 
   const handleSolicitarSuporte = () => {
     const mensagem = encodeURIComponent("Olá! Dei uma olhada nas dúvidas frequentes do site, mas preciso de um suporte personalizado sobre os lotes de eucalipto.");
-    window.open(`https://wa.me/${whatsappAtendimento}?text=${mensagem}`, '_blank');
+    const ctaSalvo = configBanner.whatsappCTA?.trim();
+
+    if (!ctaSalvo) {
+      window.open(`https://wa.me/5577992365475?text=${mensagem}`, '_blank');
+      return;
+    }
+
+    const urlFinal = ctaSalvo.startsWith('http')
+      ? `${ctaSalvo}${ctaSalvo.includes('?') ? '&' : '?'}text=${mensagem}`
+      : `https://wa.me/${ctaSalvo.replace(/\D/g, '')}?text=${mensagem}`;
+
+    window.open(urlFinal, '_blank');
   };
 
   const listaFaq: FAQItem[] = [
@@ -152,6 +155,7 @@ export default function FAQPage() {
           <button
             type="button"
             onClick={handleSolicitarSuporte}
+            aria-label="Solicitar suporte técnico via WhatsApp"
             className="w-full md:w-auto whitespace-nowrap bg-emerald-700 hover:bg-emerald-800 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
             <Phone className="w-4 h-4" /> Suporte no WhatsApp
